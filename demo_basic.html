@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StarFlow · 基础组件</title>
+<link rel="stylesheet" href="src/tokens/tokens.css">
+<link rel="stylesheet" href="demo/shell.css">
+<script>
+  /* 首屏防闪，和 demo_tokens.html 里那段一样，正式项目原样内联进 <head> */
+  (function () {
+    try {
+      var pref = localStorage.getItem('sf-theme') || 'system';
+      var dark = pref === 'dark' ||
+        (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.setAttribute('data-sf-theme', dark ? 'dark' : 'light');
+    } catch (e) {
+      document.documentElement.setAttribute('data-sf-theme', 'light');
+    }
+  })();
+</script>
+<style>
+  /* 只放这个页面自己的排版，外壳在 demo/shell.css */
+  .note {
+    margin: 0;
+    font-size: var(--sf-font-size-sm);
+    color: var(--sf-color-text-muted);
+  }
+
+  /* 头像右上角挂红点：真实用法，红点要盖在头像边框上，所以得自己套一层相对定位 */
+  .avatar-badge { position: relative; display: inline-flex; }
+  .avatar-badge sf-badge {
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    box-shadow: 0 0 0 2px var(--sf-color-surface);
+  }
+
+  .vrow {
+    display: flex;
+    align-items: center;
+    gap: var(--sf-space-3);
+    height: 24px;
+    font-size: var(--sf-font-size-sm);
+    color: var(--sf-color-text-muted);
+  }
+
+  /* popover 里的内容属于业务侧，样式写在页面里 */
+  .pop { display: grid; gap: var(--sf-space-3); }
+  .pop__title { font-size: var(--sf-font-size-sm); font-weight: var(--sf-font-weight-semibold); }
+  .pop__field { display: grid; gap: 5px; }
+  .pop__field label { font-size: 11px; color: var(--sf-color-text-muted); }
+  .pop__actions { display: flex; gap: var(--sf-space-2); }
+
+  .demo-input {
+    width: 100%;
+    height: 32px;
+    font: inherit;
+    font-size: var(--sf-font-size-sm);
+    color: var(--sf-color-text);
+    background: var(--sf-color-surface);
+    border: var(--sf-border-width) solid var(--sf-color-border-strong);
+    border-radius: var(--sf-radius-sm);
+    padding: 0 10px;
+    transition: border-color var(--sf-duration-fast) var(--sf-ease),
+                box-shadow var(--sf-duration-fast) var(--sf-ease);
+  }
+  .demo-input::placeholder { color: var(--sf-color-text-subtle); }
+  .demo-input:focus {
+    outline: none;
+    border-color: var(--sf-color-accent);
+    box-shadow: var(--sf-shadow-focus);
+  }
+
+  .skel-card {
+    display: flex;
+    align-items: center;
+    gap: var(--sf-space-3);
+    width: 260px;
+  }
+  .skel-lines { display: grid; gap: 6px; flex: 1; }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--sf-space-1);
+    padding: var(--sf-space-1);
+    background: var(--sf-color-surface-sunken);
+    border: var(--sf-border-width) solid var(--sf-color-border);
+    border-radius: var(--sf-radius-md);
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <div class="mark"></div>
+    <div>
+      <b>StarFlow Components</b>
+      <span>basic · v0.1</span>
+    </div>
+  </div>
+  <div class="seg" role="group" aria-label="主题">
+    <button type="button" data-theme="system">跟随系统</button>
+    <button type="button" data-theme="light">亮色</button>
+    <button type="button" data-theme="dark">暗色</button>
+  </div>
+</header>
+
+<main class="page">
+
+  <section class="hero">
+    <h1>基础组件</h1>
+    <p>10 个不用上下文就能用的组件。每个组件自带第三层 token（只在需要的时候），样式里没有一处硬编码色值 —— 换主题时整页跟着走，组件一行代码都不用改。</p>
+    <div class="hero__row">
+      <span class="pill">组件 <b>10</b></span>
+      <span class="pill">全局变量 <b>104</b></span>
+      <span class="pill">生效主题 <b id="resolved">—</b></span>
+      <span class="pill">依赖 <b>0</b></span>
+    </div>
+  </section>
+
+  <!-- 01 Button -->
+  <section class="sec" id="button">
+    <div class="sec__head">
+      <span class="sec__idx">01 / BUTTON</span>
+      <h2>Button</h2>
+      <p class="sec__desc">变体只换变量值，所以加一个 variant 不用写新的样式块。里面是原生 <code>&lt;button&gt;</code>，键盘、表单、读屏都是白送的。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">variant</span>
+        <sf-button>主要操作</sf-button>
+        <sf-button variant="ghost">次要操作</sf-button>
+        <sf-button disabled>禁用</sf-button>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">size</span>
+        <sf-button size="sm">小号</sf-button>
+        <sf-button>默认</sf-button>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">用法</span>
+        <code class="spec__code">&lt;sf-button variant="ghost" size="sm"&gt;</code>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 IconButton -->
+  <section class="sec" id="icon-button">
+    <div class="sec__head">
+      <span class="sec__idx">02 / ICON BUTTON</span>
+      <h2>IconButton</h2>
+      <p class="sec__desc">没有文字，所以 <code>label</code> 是必填的可访问名称 —— 少了它读屏只会念"按钮"。solid 变体用在有底色的工具条上。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">size</span>
+        <sf-icon-button label="添加" size="sm">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7z"/></svg>
+        </sf-icon-button>
+        <sf-icon-button label="添加">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7z"/></svg>
+        </sf-icon-button>
+        <sf-icon-button label="添加" size="lg">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7z"/></svg>
+        </sf-icon-button>
+        <sf-icon-button label="禁用示例" disabled>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7z"/></svg>
+        </sf-icon-button>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">solid</span>
+        <div class="toolbar">
+          <sf-icon-button variant="solid" label="更多">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg>
+          </sf-icon-button>
+          <sf-icon-button label="通知">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a5 5 0 015 5v3.6l1.6 3.2a1 1 0 01-.9 1.4H6.3a1 1 0 01-.9-1.4L7 11.6V8a5 5 0 015-5zm0 15.5a2.2 2.2 0 01-2.1-1.6h4.2a2.2 2.2 0 01-2.1 1.6z"/></svg>
+          </sf-icon-button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 Badge -->
+  <section class="sec" id="badge">
+    <div class="sec__head">
+      <span class="sec__idx">03 / BADGE</span>
+      <h2>Badge</h2>
+      <p class="sec__desc">计数走实心底色（要跳出来），<code>max</code> 处理上限，<code>dot</code> 是给头像挂红点用的。没有自己的 token —— 默认色和 tone 用语义层就能表达。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">count</span>
+        <sf-badge count="3"></sf-badge>
+        <sf-badge count="12"></sf-badge>
+        <sf-badge count="128" max="99"></sf-badge>
+        <sf-badge count="7" tone="danger"></sf-badge>
+        <sf-badge count="2" tone="success"></sf-badge>
+        <sf-badge count="1" tone="warning"></sf-badge>
+        <sf-badge count="0" tone="neutral"></sf-badge>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">dot</span>
+        <span class="avatar-badge">
+          <sf-avatar name="张三"></sf-avatar>
+          <sf-badge dot tone="danger"></sf-badge>
+        </span>
+        <span class="avatar-badge">
+          <sf-avatar name="Ada Lovelace" size="lg"></sf-avatar>
+          <sf-badge dot tone="success"></sf-badge>
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 Tag -->
+  <section class="sec" id="tag">
+    <div class="sec__head">
+      <span class="sec__idx">04 / TAG</span>
+      <h2>Tag</h2>
+      <p class="sec__desc">不可交互的标签。可关闭时点击 × 派发 <code>sf-remove</code>，组件不自己删自己 —— 删标签通常还要同步改数据。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">tone</span>
+        <sf-tag>默认</sf-tag>
+        <sf-tag tone="accent">前端</sf-tag>
+        <sf-tag tone="success">已上线</sf-tag>
+        <sf-tag tone="warning">待审核</sf-tag>
+        <sf-tag tone="danger">已下线</sf-tag>
+        <sf-tag outline>描边</sf-tag>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">closable</span>
+        <span id="tags">
+          <sf-tag closable tone="accent">React</sf-tag>
+          <sf-tag closable>TypeScript</sf-tag>
+          <sf-tag closable tone="warning">待定</sf-tag>
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 Avatar -->
+  <section class="sec" id="avatar">
+    <div class="sec__head">
+      <span class="sec__idx">05 / AVATAR</span>
+      <h2>Avatar</h2>
+      <p class="sec__desc">有 <code>src</code> 显示图片，图挂了或没 src 退回名字缩写（中文取后两字，英文取首字母）。不做 slot —— 要放图标直接用 div 更省事。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">size</span>
+        <sf-avatar name="张三" size="sm"></sf-avatar>
+        <sf-avatar name="张三"></sf-avatar>
+        <sf-avatar name="欧阳修" size="lg"></sf-avatar>
+        <sf-avatar name="Ada Lovelace"></sf-avatar>
+        <sf-avatar name="Ada Lovelace" size="lg" shape="square"></sf-avatar>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">src</span>
+        <sf-avatar size="lg" name="李雷" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23f5b544'/%3E%3Cstop offset='1' stop-color='%23d93b3b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='80' height='80' fill='url(%23g)'/%3E%3Ccircle cx='40' cy='30' r='13' fill='rgba(255,255,255,.9)'/%3E%3Ccircle cx='40' cy='74' r='25' fill='rgba(255,255,255,.9)'/%3E%3C/svg%3E"></sf-avatar>
+        <sf-avatar size="lg" name="王小明" src="https://example.invalid/none.png"></sf-avatar>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 Tooltip -->
+  <section class="sec" id="tooltip">
+    <div class="sec__head">
+      <span class="sec__idx">06 / TOOLTIP</span>
+      <h2>Tooltip</h2>
+      <p class="sec__desc">悬停或聚焦 120ms 后出现，位置放不下会自动翻到对面。气泡 <code>pointer-events: none</code>，不然鼠标移上去就会闪。颜色是语义层取反（深底浅字），两套主题都成立。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">placement</span>
+        <sf-tooltip content="上方提示" placement="top"><sf-button variant="ghost">上</sf-button></sf-tooltip>
+        <sf-tooltip content="下方提示" placement="bottom"><sf-button variant="ghost">下</sf-button></sf-tooltip>
+        <sf-tooltip content="左边提示" placement="left"><sf-button variant="ghost">左</sf-button></sf-tooltip>
+        <sf-tooltip content="右边提示" placement="right"><sf-button variant="ghost">右</sf-button></sf-tooltip>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">delay</span>
+        <sf-tooltip content="立即出现（delay=0）" delay="0"><sf-button variant="ghost">无延迟</sf-button></sf-tooltip>
+        <sf-tooltip content="这个提示长一点，用来验证明明放不下的时候会不会换行，以及气泡最大宽度是否生效。">
+          <sf-button variant="ghost">长文本</sf-button>
+        </sf-tooltip>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 Popover -->
+  <section class="sec" id="popover">
+    <div class="sec__head">
+      <span class="sec__idx">07 / POPOVER</span>
+      <h2>Popover</h2>
+      <p class="sec__desc">锚点用 id 引用，浮层不参与触发器布局。点外面、按 Esc 都会关，Esc 还会把焦点还回触发器。用 fixed + <code>--sf-z-*</code>，容器 overflow 也不会裁掉。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">anchored</span>
+        <sf-button id="pv-trigger" variant="ghost">筛选条件</sf-button>
+        <sf-popover anchor="pv-trigger" placement="bottom-start">
+          <div class="pop">
+            <div class="pop__title">筛选</div>
+            <div class="pop__field">
+              <label for="pv-input">关键词</label>
+              <input class="demo-input" id="pv-input" placeholder="输入后回车">
+            </div>
+            <sf-divider></sf-divider>
+            <div class="pop__actions">
+              <sf-button size="sm">应用</sf-button>
+              <sf-button size="sm" variant="ghost">重置</sf-button>
+            </div>
+          </div>
+        </sf-popover>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 Dropdown -->
+  <section class="sec" id="dropdown">
+    <div class="sec__head">
+      <span class="sec__idx">08 / DROPDOWN</span>
+      <h2>Dropdown</h2>
+      <p class="sec__desc">菜单项就是带 <code>role="menuitem"</code> 的普通元素，排版由组件的 <code>::slotted</code> 负责。支持上下键 / Home / End / Esc，选中派发 <code>sf-select</code>。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">menu</span>
+        <sf-dropdown id="dd">
+          <sf-button slot="trigger" variant="ghost">更多操作</sf-button>
+          <div role="menuitem" data-value="rename">重命名</div>
+          <div role="menuitem" data-value="duplicate">复制一份</div>
+          <div role="menuitem" data-value="archive" aria-disabled="true">归档（无权限）</div>
+          <div role="separator"></div>
+          <div role="menuitem" data-value="delete" data-danger>删除</div>
+        </sf-dropdown>
+        <code class="spec__code">最近选择：<b id="dd-out">—</b></code>
+      </div>
+    </div>
+  </section>
+
+  <!-- 09 Divider -->
+  <section class="sec" id="divider">
+    <div class="sec__head">
+      <span class="sec__idx">09 / DIVIDER</span>
+      <h2>Divider</h2>
+      <p class="sec__desc">有文字时两侧各一条线。没文字要隐藏第二条线 —— 两条线之间还留着 gap 的话，中间会缺一个口子，看起来像 3px 的粗线。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">horizontal</span>
+        <div style="display:grid; gap: var(--sf-space-4); width: 100%;">
+          <sf-divider></sf-divider>
+          <sf-divider>或者</sf-divider>
+        </div>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">vertical</span>
+        <div class="vrow">
+          <span>草稿</span>
+          <sf-divider vertical></sf-divider>
+          <span>已发布</span>
+          <sf-divider vertical></sf-divider>
+          <span>已归档</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 Skeleton -->
+  <section class="sec" id="skeleton">
+    <div class="sec__head">
+      <span class="sec__idx">10 / SKELETON</span>
+      <h2>Skeleton</h2>
+      <p class="sec__desc">尺寸走实例变量（<code>--sf-skeleton-width/height/size</code>）：占位块的大小天然由业务决定，预设几个档位反而都用不上。系统开了减少动效就停。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">variant</span>
+        <sf-skeleton variant="circle" style="--sf-skeleton-size: 40px"></sf-skeleton>
+        <div class="skel-lines" style="width: 200px; flex: none;">
+          <sf-skeleton></sf-skeleton>
+          <sf-skeleton style="--sf-skeleton-width: 70%"></sf-skeleton>
+        </div>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">rect</span>
+        <sf-skeleton variant="rect" style="--sf-skeleton-height: 72px; --sf-skeleton-width: 240px;"></sf-skeleton>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">组合</span>
+        <div class="skel-card">
+          <sf-skeleton variant="circle" style="--sf-skeleton-size: 36px;"></sf-skeleton>
+          <div class="skel-lines">
+            <sf-skeleton style="--sf-skeleton-width: 45%"></sf-skeleton>
+            <sf-skeleton></sf-skeleton>
+            <sf-skeleton style="--sf-skeleton-width: 72%"></sf-skeleton>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div>10 个组件都在 <code>src/components/</code>，一个文件一个，<code>src/index.js</code> 全量注册</div>
+    <div>浮层定位共用 <code>internal/floating.js</code>，只算坐标，不管显隐</div>
+    <div>换主题：右上角切换，或 <code>setTheme('dark')</code></div>
+  </footer>
+
+</main>
+
+<script type="module">
+  import { initShell } from './demo/shell.js';
+  import './src/index.js';
+
+  initShell();
+
+  // tag 关闭：组件只发事件，删不删由业务决定
+  document.getElementById('tags').addEventListener('sf-remove', (event) => {
+    event.target.remove();
+  });
+
+  // dropdown 选中回显
+  const out = document.getElementById('dd-out');
+  document.getElementById('dd').addEventListener('sf-select', (event) => {
+    out.textContent = `${event.detail.value}`;
+  });
+</script>
+
+</body>
+</html>

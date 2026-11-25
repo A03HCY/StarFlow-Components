@@ -1,0 +1,238 @@
+/*!
+ * StarFlow Components — Design Tokens v0.1
+ *
+ * 三层结构：
+ *   L1  primitive   原始值，只允许本文件内部引用
+ *   L2  semantic    组件只消费这一层；主题也只覆盖这一层
+ *   L3  component   单个组件的默认值和覆盖钩子，声明在该组件自己的 :host 上（见 sf-button.js），
+ *                   不进本文件 —— 组件删了，它的 token 跟着走，不会留下孤儿变量
+ * 违反「组件只消费 L2」这条，换主题时就得逐个组件去改颜色，token 层的意义就没了。
+ * L3 不是必经之路：只有在 L2 表达不了（高度、密度这类组合值），或者要给外部留覆盖钩子时才建，
+ * 单纯给语义变量改个名等于多一层查表。
+ *
+ * 主题由 <html data-sf-theme="light|dark"> 决定（theme.js 负责写这个属性）。
+ * 没有这个属性时按亮色渲染 —— 所以首屏要有一段内联脚本先把它写上，否则会闪。
+ *
+ * 这个属性也可以写在任意容器上，子树就成为一个独立的主题域（比如亮色页面里的暗色侧栏）。
+ * 但组件必须在自己的根节点上声明 color / background / border-color，
+ * 靠继承拿不到 —— color 继承的是计算值，父级算完之后不会再跟着 --sf-color-text 变。
+ */
+
+:root {
+  /* ==========================================================
+     L1 · Primitive — 原始值，不随主题变化
+     ========================================================== */
+
+  /* 中性色：略偏冷，比纯灰干净，适合大面积 UI */
+  --sf-neutral-0: #ffffff;
+  --sf-neutral-50: #f8f9fb;
+  --sf-neutral-100: #f1f3f7;
+  --sf-neutral-200: #e4e8ef;
+  --sf-neutral-300: #d2d8e3;
+  --sf-neutral-400: #a9b2c3;
+  --sf-neutral-500: #7b879c;
+  --sf-neutral-600: #5a6478;
+  --sf-neutral-700: #414a5c;
+  --sf-neutral-800: #262d3b;
+  --sf-neutral-900: #171c26;
+  --sf-neutral-950: #0d1118;
+
+  /* 品牌色 */
+  --sf-blue-50: #eef3ff;
+  --sf-blue-100: #dbe5ff;
+  --sf-blue-200: #bccdff;
+  --sf-blue-300: #93acff;
+  --sf-blue-400: #6b8cff;
+  --sf-blue-500: #4169f0;
+  --sf-blue-600: #2f52d6;
+  --sf-blue-700: #2742ab;
+  --sf-blue-800: #233a87;
+  --sf-blue-900: #1f3169;
+
+  /* 状态色：亮色用 600 保证文字对比度，暗色用 400 保证亮度 */
+  --sf-green-400: #3ecf8e;
+  --sf-green-500: #12a05e;
+  --sf-green-600: #0f8a4f;
+
+  --sf-red-400: #ff7b7b;
+  --sf-red-500: #d93b3b;
+  --sf-red-600: #b62f2f;
+
+  --sf-amber-400: #f5b544;
+  --sf-amber-500: #c98418;
+  --sf-amber-600: #a86a12;
+
+  /* 间距：4px 网格，数字即倍数（--sf-space-4 = 16px） */
+  --sf-space-0: 0;
+  --sf-space-1: 4px;
+  --sf-space-2: 8px;
+  --sf-space-3: 12px;
+  --sf-space-4: 16px;
+  --sf-space-5: 20px;
+  --sf-space-6: 24px;
+  --sf-space-8: 32px;
+  --sf-space-10: 40px;
+  --sf-space-12: 48px;
+  --sf-space-16: 64px;
+
+  /* 字体 */
+  --sf-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --sf-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono",
+    monospace;
+
+  --sf-font-size-xs: 12px;
+  --sf-font-size-sm: 13px;
+  --sf-font-size-md: 14px;
+  --sf-font-size-lg: 16px;
+  --sf-font-size-xl: 18px;
+  --sf-font-size-2xl: 22px;
+  --sf-font-size-3xl: 28px;
+
+  --sf-font-weight-regular: 400;
+  --sf-font-weight-medium: 500;
+  --sf-font-weight-semibold: 600;
+  --sf-font-weight-bold: 700;
+
+  --sf-line-height-tight: 1.25;
+  --sf-line-height-normal: 1.5;
+  --sf-line-height-relaxed: 1.7;
+
+  /* 圆角 */
+  --sf-radius-xs: 4px;
+  --sf-radius-sm: 6px;
+  --sf-radius-md: 8px;
+  --sf-radius-lg: 12px;
+  --sf-radius-xl: 16px;
+  --sf-radius-full: 9999px;
+
+  /* 描边 */
+  --sf-border-width: 1px;
+  --sf-border-width-strong: 2px;
+
+  /* 动效 */
+  --sf-duration-fast: 120ms;
+  --sf-duration-base: 180ms;
+  --sf-duration-slow: 280ms;
+  --sf-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --sf-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* 层级 */
+  --sf-z-dropdown: 1000;
+  --sf-z-sticky: 1020;
+  --sf-z-overlay: 1100;
+  --sf-z-modal: 1110;
+  --sf-z-toast: 1200;
+  --sf-z-tooltip: 1300;
+
+  /* 焦点环 */
+  --sf-ring-width: 3px;
+
+  /* ==========================================================
+     L2 · Semantic — 主题层，组件只认这些
+     ========================================================== */
+
+  color-scheme: light;
+
+  /* 表面：暗色下 elevation 越高颜色越亮，亮色下靠阴影区分，所以这组必须走语义层 */
+  --sf-color-bg: var(--sf-neutral-50);
+  --sf-color-surface: var(--sf-neutral-0);
+  --sf-color-surface-hover: var(--sf-neutral-100);
+  --sf-color-surface-sunken: var(--sf-neutral-100);
+
+  /* 文本：三级灰度 —— 正文 / 次要 / 占位与禁用
+     注意 text-subtle 在亮色下只有 3.5:1，它是给占位符和装饰性标注用的，
+     别拿它装正文。要四级都过 4.5:1，这套中性色阶的亮度间距是不够的。 */
+  --sf-color-text: var(--sf-neutral-900);
+  --sf-color-text-muted: var(--sf-neutral-600);
+  --sf-color-text-subtle: var(--sf-neutral-500);
+  --sf-color-text-inverse: var(--sf-neutral-0);
+
+  /* 描边：默认分割线 / 需要明确边界时（输入框、按钮） */
+  --sf-color-border: var(--sf-neutral-200);
+  --sf-color-border-strong: var(--sf-neutral-300);
+
+  /* 主色 */
+  --sf-color-accent: var(--sf-blue-500);
+  --sf-color-accent-hover: var(--sf-blue-600);
+  --sf-color-accent-active: var(--sf-blue-700);
+  --sf-color-accent-subtle: var(--sf-blue-50);
+  --sf-color-on-accent: var(--sf-neutral-0);
+
+  /* 状态色：*-subtle 用 color-mix 现算，省掉一整套浅色 primitive。
+     实测（亮色，状态色压在自家 subtle 底上）：success 3.9:1、warning 3.9:1、danger 5.2:1。
+     前两个不到 4.5:1 —— 11px 的徽章文字会偏吃力，所以大字号或图标用没问题，
+     小字要严格达标就改成「色点 + 正文色文字」。真去压暗这两支，warning 会变成土褐色，
+     比对比度那半个点更难看，这就是取舍。 */
+  --sf-color-success: var(--sf-green-600);
+  --sf-color-success-subtle: color-mix(in oklab, var(--sf-green-500) 12%, var(--sf-color-surface));
+  --sf-color-danger: var(--sf-red-600);
+  --sf-color-danger-subtle: color-mix(in oklab, var(--sf-red-500) 12%, var(--sf-color-surface));
+  --sf-color-warning: var(--sf-amber-600);
+  --sf-color-warning-subtle: color-mix(in oklab, var(--sf-amber-500) 14%, var(--sf-color-surface));
+
+  /* 焦点环 */
+  --sf-color-ring: color-mix(in oklab, var(--sf-color-accent) 40%, transparent);
+  --sf-shadow-focus: 0 0 0 var(--sf-ring-width) var(--sf-color-ring);
+
+  /* 控件高度：原来是 sf-button 的 L3 私有值，input / select 也要 32px 才提到这里。
+     40px 目前只有 icon-button 的 lg 在用，等第二处出现再说 —— 先留着不建。 */
+  --sf-control-height-sm: 28px;
+  --sf-control-height-md: 32px;
+
+  /* 阴影：暗色下要更重、更黑，所以进语义层 */
+  --sf-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+  --sf-shadow-md: 0 4px 8px -2px rgba(16, 24, 40, 0.08), 0 8px 24px -4px rgba(16, 24, 40, 0.1);
+  --sf-shadow-lg: 0 8px 16px -4px rgba(16, 24, 40, 0.1), 0 20px 40px -8px rgba(16, 24, 40, 0.14);
+}
+
+/* ==========================================================
+   主题覆盖 · Dark — 只覆盖 L2，L1 一个都不动
+   ========================================================== */
+
+[data-sf-theme="dark"] {
+  color-scheme: dark;
+
+  --sf-color-bg: var(--sf-neutral-950);
+  --sf-color-surface: #151a24;
+  --sf-color-surface-hover: #1d2431;
+  --sf-color-surface-sunken: #080b11;
+
+  --sf-color-text: #e7ebf3;
+  --sf-color-text-muted: #a2acbe;
+  --sf-color-text-subtle: #79839a;
+  --sf-color-text-inverse: var(--sf-neutral-950);
+
+  --sf-color-border: #242c3a;
+  --sf-color-border-strong: #364054;
+
+  /* 亮色下 500 够压得住白底，暗色下必须提亮，否则整块发闷 */
+  --sf-color-accent: var(--sf-blue-400);
+  --sf-color-accent-hover: var(--sf-blue-300);
+  --sf-color-accent-active: var(--sf-blue-200);
+  --sf-color-accent-subtle: color-mix(in oklab, var(--sf-blue-400) 16%, var(--sf-color-surface));
+  /* 亮蓝按钮上用深色字，对比度和观感都比白字好 */
+  --sf-color-on-accent: #0a0e15;
+
+  --sf-color-success: var(--sf-green-400);
+  --sf-color-success-subtle: color-mix(in oklab, var(--sf-green-400) 16%, var(--sf-color-surface));
+  --sf-color-danger: var(--sf-red-400);
+  --sf-color-danger-subtle: color-mix(in oklab, var(--sf-red-400) 16%, var(--sf-color-surface));
+  --sf-color-warning: var(--sf-amber-400);
+  --sf-color-warning-subtle: color-mix(in oklab, var(--sf-amber-400) 18%, var(--sf-color-surface));
+
+  --sf-color-ring: color-mix(in oklab, var(--sf-blue-400) 45%, transparent);
+
+  --sf-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --sf-shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.5), 0 8px 24px -4px rgba(0, 0, 0, 0.45);
+  --sf-shadow-lg: 0 8px 16px -4px rgba(0, 0, 0, 0.55), 0 20px 40px -8px rgba(0, 0, 0, 0.55);
+}
+
+/* 动效偏好为 reduce 时，把时长归零 —— 组件写 transition 就不用各自判断了 */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --sf-duration-fast: 0ms;
+    --sf-duration-base: 0ms;
+    --sf-duration-slow: 0ms;
+  }
+}

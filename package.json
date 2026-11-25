@@ -1,0 +1,10 @@
+{
+  "name": "starflow-components",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "原生 Web Components 组件库，零构建",
+  "scripts": {
+    "demo": "python -m http.server 5173"
+  }
+}

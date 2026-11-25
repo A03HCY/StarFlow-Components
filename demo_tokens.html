@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StarFlow · Design Tokens</title>
+<link rel="stylesheet" href="src/tokens/tokens.css">
+<script>
+  /* 首屏防闪：模块是 defer 的，等它跑完已经画过一帧了。
+     正式项目里把这段原样内联进 <head>，主题就不闪。 */
+  (function () {
+    try {
+      var pref = localStorage.getItem('sf-theme') || 'system';
+      var dark = pref === 'dark' ||
+        (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.setAttribute('data-sf-theme', dark ? 'dark' : 'light');
+    } catch (e) {
+      document.documentElement.setAttribute('data-sf-theme', 'light');
+    }
+  })();
+</script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--sf-color-bg);
+    color: var(--sf-color-text);
+    font-family: var(--sf-font-sans);
+    font-size: var(--sf-font-size-md);
+    line-height: var(--sf-line-height-normal);
+    -webkit-font-smoothing: antialiased;
+    transition: background-color var(--sf-duration-base) var(--sf-ease),
+                color var(--sf-duration-base) var(--sf-ease);
+  }
+
+  code { font-family: var(--sf-font-mono); }
+
+  /* ---------- 顶栏 ---------- */
+  .top {
+    position: sticky;
+    top: 0;
+    z-index: var(--sf-z-sticky);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sf-space-4);
+    height: 60px;
+    padding: 0 var(--sf-space-6);
+    background: color-mix(in oklab, var(--sf-color-bg) 84%, transparent);
+    backdrop-filter: saturate(1.4) blur(14px);
+    border-bottom: var(--sf-border-width) solid var(--sf-color-border);
+  }
+
+  .brand { display: flex; align-items: center; gap: var(--sf-space-3); }
+  .mark {
+    width: 24px; height: 24px;
+    border-radius: 7px;
+    background: linear-gradient(150deg, var(--sf-color-accent), var(--sf-color-accent-active));
+    box-shadow: var(--sf-shadow-sm);
+  }
+  .brand b {
+    display: block;
+    font-size: var(--sf-font-size-sm);
+    font-weight: var(--sf-font-weight-semibold);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  .brand span {
+    display: block;
+    font-size: 10px;
+    font-family: var(--sf-font-mono);
+    color: var(--sf-color-text-subtle);
+    line-height: 1.3;
+  }
+
+  .seg {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: var(--sf-radius-md);
+    background: var(--sf-color-surface-sunken);
+    border: var(--sf-border-width) solid var(--sf-color-border);
+  }
+  .seg button {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--sf-color-text-muted);
+    font: inherit;
+    font-size: var(--sf-font-size-xs);
+    font-weight: var(--sf-font-weight-medium);
+    padding: 5px 11px;
+    border-radius: var(--sf-radius-sm);
+    cursor: pointer;
+    transition: color var(--sf-duration-fast) var(--sf-ease),
+                background-color var(--sf-duration-fast) var(--sf-ease);
+  }
+  .seg button:hover { color: var(--sf-color-text); }
+  .seg button[aria-pressed="true"] {
+    background: var(--sf-color-surface);
+    color: var(--sf-color-text);
+    box-shadow: var(--sf-shadow-sm);
+  }
+  .seg button:focus-visible { outline: none; box-shadow: var(--sf-shadow-focus); }
+
+  /* ---------- 布局 ---------- */
+  .page {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 var(--sf-space-6) var(--sf-space-16);
+  }
+
+  .hero {
+    padding: var(--sf-space-16) 0 var(--sf-space-12);
+    display: grid;
+    gap: var(--sf-space-4);
+  }
+  .hero h1 {
+    margin: 0;
+    font-size: var(--sf-font-size-3xl);
+    line-height: var(--sf-line-height-tight);
+    font-weight: var(--sf-font-weight-semibold);
+    letter-spacing: -0.02em;
+  }
+  .hero p { margin: 0; max-width: 60ch; color: var(--sf-color-text-muted); }
+  .hero__row { display: flex; flex-wrap: wrap; gap: var(--sf-space-2); }
+
+  /* 三层结构条 */
+  .layers { display: flex; align-items: stretch; gap: var(--sf-space-2); flex-wrap: wrap; }
+  .layer {
+    display: flex;
+    align-items: center;
+    gap: var(--sf-space-3);
+    padding: var(--sf-space-2) var(--sf-space-3);
+    border: var(--sf-border-width) solid var(--sf-color-border);
+    border-radius: var(--sf-radius-md);
+    background: var(--sf-color-surface);
+  }
+  .layer__tag {
+    font-family: var(--sf-font-mono);
+    font-size: 10px;
+    line-height: 1.6;
+    padding: 0 5px;
+    border-radius: var(--sf-radius-xs);
+    background: var(--sf-color-accent-subtle);
+    color: var(--sf-color-accent);
+  }
+  .layer__text { display: grid; }
+  .layer__text b { font-size: var(--sf-font-size-sm); font-weight: var(--sf-font-weight-semibold); }
+  .layer__text em {
+    font-style: normal;
+    font-size: 11px;
+    color: var(--sf-color-text-muted);
+  }
+  .layer__arrow {
+    align-self: center;
+    font-family: var(--sf-font-mono);
+    color: var(--sf-color-text-subtle);
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--sf-font-mono);
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: var(--sf-radius-full);
+    background: var(--sf-color-surface);
+    border: var(--sf-border-width) solid var(--sf-color-border);
+    color: var(--sf-color-text-muted);
+  }
+  .pill b { color: var(--sf-color-text); font-weight: var(--sf-font-weight-semibold); }
+
+  .sec {
+    padding: var(--sf-space-10) 0;
+    border-top: var(--sf-border-width) solid var(--sf-color-border);
+    scroll-margin-top: 72px;
+  }
+  .sec__head { display: grid; gap: var(--sf-space-1); margin-bottom: var(--sf-space-6); }
+  .sec__idx {
+    font-family: var(--sf-font-mono);
+    font-size: 11px;
+    color: var(--sf-color-text-subtle);
+    letter-spacing: 0.08em;
+  }
+  .sec h2 {
+    margin: 0;
+    font-size: var(--sf-font-size-xl);
+    font-weight: var(--sf-font-weight-semibold);
+    letter-spacing: -0.01em;
+  }
+  .sec__desc {
+    margin: 0;
+    max-width: 68ch;
+    font-size: var(--sf-font-size-sm);
+    color: var(--sf-color-text-muted);
+  }
+
+  /* ---------- 语义色卡片 ---------- */
+  .swatches { display: grid; gap: var(--sf-space-5); }
+  .subhead {
+    margin: 0 0 var(--sf-space-2);
+    font-size: 11px;
+    font-weight: var(--sf-font-weight-semibold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--sf-color-text-subtle);
+  }
+  .swatches__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+    gap: var(--sf-space-3);
+  }
+  .sw {
+    background: var(--sf-color-surface);
+    border: var(--sf-border-width) solid var(--sf-color-border);
+    border-radius: var(--sf-radius-md);
+    overflow: hidden;
+  }
+  /* 内描一圈发丝线：不然 --sf-color-surface 这种接近白色的色块在卡片上就是一片空 */
+  .sw__chip {
+    height: 44px;
+    border-bottom: var(--sf-border-width) solid var(--sf-color-border);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sf-color-text) 8%, transparent);
+  }
+  .sw__body { padding: 8px 10px 10px; display: grid; gap: 2px; }
+  .sw__name { font-family: var(--sf-font-mono); font-size: 10.5px; word-break: break-all; }
+  .sw__note { font-size: 11px; color: var(--sf-color-text-muted); }
+  .sw__val {
+    font-family: var(--sf-font-mono);
+    font-size: 10px;
+    color: var(--sf-color-text-muted);
+    margin-top: 2px;
+    word-break: break-all;
+  }
+
+  /* ---------- 色阶 ---------- */
+  .ramps { display: grid; gap: var(--sf-space-4); }
+  .ramp { display: grid; grid-template-columns: 84px 1fr; align-items: start; gap: var(--sf-space-3); }
+  .ramp__label {
+    font-family: var(--sf-font-mono);
+    font-size: 11px;
+    color: var(--sf-color-text-muted);
+    padding-top: 2px;
+  }
+  .ramp__track { display: flex; gap: 3px; flex-wrap: wrap; }
+  .ramp__col { display: grid; gap: 3px; }
+  .ramp__step {
+    width: 38px;
+    height: 38px;
+    border-radius: 3px;
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sf-color-text) 8%, transparent);
+  }
+  .ramp__col span {
+    font-family: var(--sf-font-mono);
+    font-size: 10px;
+    text-align: center;
+    color: var(--sf-color-text-subtle);
+  }
+
+  /* ---------- 组件 token ---------- */
+  .ctokens {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: var(--sf-space-8);
+    align-items: start;
+  }
+  .ctokens__table { display: grid; }
+  .ctoken {
+    display: grid;
+    gap: 2px;
+    padding: 9px 0;
+    border-bottom: var(--sf-border-width) solid var(--sf-color-border);
+  }
+  .ctoken:first-child { padding-top: 0; }
+  .ctoken__top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--sf-space-3);
+  }
+  .ctoken__name { font-family: var(--sf-font-mono); font-size: 11px; }
+  .ctoken__def {
+    font-family: var(--sf-font-mono);
+    font-size: 10px;
+    color: var(--sf-color-text-muted);
+    text-align: right;
+  }
+  .ctoken__note { font-size: 11px; color: var(--sf-color-text-muted); }
+
+  .ctokens__side { display: grid; gap: var(--sf-space-4); }
+  .ctokens__variants {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sf-space-3);
+    padding: var(--sf-space-5);
+    background: var(--sf-color-surface-sunken);
+    border: var(--sf-border-width) solid var(--sf-color-border);
+    border-radius: var(--sf-radius-md);
+  }
+
+  .play {
+    display: grid;
+    gap: var(--sf-space-3);
+    padding: var(--sf-space-4);
+    border: var(--sf-border-width) solid var(--sf-color-border);
+    border-radius: var(--sf-radius-md);
+    background: var(--sf-color-surface);
+  }
+  .play__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sf-space-3);
+  }
+  .play__head code { font-size: 10px; color: var(--sf-color-text-muted); }
+  .play__row {
+    display: grid;
+    grid-template-columns: 1fr 92px 40px;
+    align-items: center;
+    gap: var(--sf-space-3);
+  }
+  .play__row code { font-size: 10px; color: var(--sf-color-text-muted); }
+  .play__row input[type="range"] { width: 100%; margin: 0; accent-color: var(--sf-color-accent); }
+  .play__row output {
+    font-family: var(--sf-font-mono);
+    font-size: 10px;
+    color: var(--sf-color-text-muted);
+    text-align: right;
+  }
+  .play__code {
+    font-size: 10px;
+    color: var(--sf-color-text-muted);
+    padding-top: var(--sf-space-2);
+    border-top: 1px dashed var(--sf-color-border);
+    word-break: break-all;
+  }
+  .ctokens__hint {
+    margin: 0;
+    font-size: 11px;
+    line-height: var(--sf-line-height-relaxed);
+    color: var(--sf-color-text-muted);
+  }
+  .ctokens__hint code { color: var(--sf-color-text); }
+
+  @media (max-width: 860px) {
+    .ctokens { grid-template-columns: 1fr; gap: var(--sf-space-6); }
+  }
+
+  /* ---------- 间距 ---------- */
+  .spaces { display: grid; gap: 2px; max-width: 520px; }
+  .space__row {
+    display: grid;
+    grid-template-columns: 100px 1fr 44px;
+    align-items: center;
+    gap: var(--sf-space-4);
+    padding: 4px 0;
+  }
+  .space__name { font-family: var(--sf-font-mono); font-size: 11px; color: var(--sf-color-text-muted); }
+  .space__bar { height: 10px; background: var(--sf-color-accent); border-radius: var(--sf-radius-full); }
+  .space__px {
+    font-family: var(--sf-font-mono);
+    font-size: 11px;
+    color: var(--sf-color-text-muted);
+    text-align: right;
+  }
+
+  /* ---------- 字号 ---------- */
+  .type { display: grid; }
+  .type__row {
+    display: grid;
+    grid-template-columns: 148px 1fr;
+    gap: var(--sf-space-4);
+    align-items: baseline;
+    padding: var(--sf-space-3) 0;
+    border-bottom: 1px dashed var(--sf-color-border);
+  }
+  .type__row:last-child { border-bottom: 0; }
+  .type__key { display: grid; gap: 1px; }
+  .type__key code { font-size: 11px; color: var(--sf-color-text); font-family: var(--sf-font-mono); }
+  .type__key span { font-size: 10px; color: var(--sf-color-text-subtle); font-family: var(--sf-font-mono); }
+  .type__sample { letter-spacing: -0.01em; }
+
+  /* ---------- 圆角 / 阴影 ---------- */
+  .shapes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+    gap: var(--sf-space-4);
+  }
+  .shape { display: grid; gap: var(--sf-space-2); }
+  .shape__box {
+    height: 84px;
+    background: var(--sf-color-surface);
+    border: var(--sf-border-width) solid var(--sf-color-border-strong);
+    display: grid;
+    place-items: center;
+    font-family: var(--sf-font-mono);
+    font-size: 10px;
+    color: var(--sf-color-text-subtle);
+  }
+  .shape__label { font-family: var(--sf-font-mono); font-size: 10px; color: var(--sf-color-text-muted); }
+
+  .shadows {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--sf-space-6);
+    padding: var(--sf-space-1) 0 var(--sf-space-2);
+  }
+  .subhead--gap { margin-top: var(--sf-space-8); margin-bottom: var(--sf-space-4); }
+  .shadow__box {
+    height: 80px;
+    border-radius: var(--sf-radius-lg);
+    background: var(--sf-color-surface);
+    display: grid;
+    place-items: center;
+    font-family: var(--sf-font-mono);
+    font-size: 10px;
+    color: var(--sf-color-text-subtle);
+  }
+
+  /* ---------- 动效 / 层级 ---------- */
+  .kvwrap { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--sf-space-8); }
+  .kv { display: grid; grid-template-columns: 1fr auto; }
+  .kv > div {
+    padding: 7px 0;
+    border-bottom: var(--sf-border-width) solid var(--sf-color-border);
+    font-family: var(--sf-font-mono);
+    font-size: 11px;
+  }
+  .kv .k { color: var(--sf-color-text); }
+  .kv .v { color: var(--sf-color-text-muted); text-align: right; }
+
+  /* ---------- 组合预览 ---------- */
+  .demo {
+    max-width: 400px;
+    padding: var(--sf-space-5);
+    display: grid;
+    gap: var(--sf-space-3);
+    background: var(--sf-color-surface);
+    /* 必须自己声明 color 而不是靠继承：color 继承的是计算值，
+       父级算完就不再看 --sf-color-text 了，局部主题域里文字会不跟着变 */
+    color: var(--sf-color-text);
+    border: var(--sf-border-width) solid var(--sf-color-border);
+    border-radius: var(--sf-radius-lg);
+    box-shadow: var(--sf-shadow-md);
+  }
+  .demo__title { font-size: var(--sf-font-size-lg); font-weight: var(--sf-font-weight-semibold); letter-spacing: -0.01em; }
+  .demo__desc { font-size: var(--sf-font-size-sm); color: var(--sf-color-text-muted); margin: -8px 0 0; }
+
+  .demo-input {
+    width: 100%;
+    height: 32px;
+    font: inherit;
+    font-size: var(--sf-font-size-sm);
+    color: var(--sf-color-text);
+    background: var(--sf-color-surface);
+    border: var(--sf-border-width) solid var(--sf-color-border-strong);
+    border-radius: var(--sf-radius-sm);
+    padding: 0 10px;
+    transition: border-color var(--sf-duration-fast) var(--sf-ease),
+                box-shadow var(--sf-duration-fast) var(--sf-ease);
+  }
+  .demo-input::placeholder { color: var(--sf-color-text-subtle); }
+  .demo-input:focus {
+    outline: none;
+    border-color: var(--sf-color-accent);
+    box-shadow: var(--sf-shadow-focus);
+  }
+
+  .demo__row { display: flex; gap: var(--sf-space-2); align-items: center; }
+
+  .demo-badges { display: flex; flex-wrap: wrap; gap: var(--sf-space-2); padding-top: var(--sf-space-1); }
+  .demo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: var(--sf-font-weight-medium);
+    padding: 3px 9px;
+    border-radius: var(--sf-radius-full);
+  }
+  .demo-badge::before {
+    content: "";
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .demo-badge--success { background: var(--sf-color-success-subtle); color: var(--sf-color-success); }
+  .demo-badge--warning { background: var(--sf-color-warning-subtle); color: var(--sf-color-warning); }
+  .demo-badge--danger { background: var(--sf-color-danger-subtle); color: var(--sf-color-danger); }
+  .demo-badge--accent { background: var(--sf-color-accent-subtle); color: var(--sf-color-accent); }
+
+  /* ---------- 页脚 ---------- */
+  .foot {
+    border-top: var(--sf-border-width) solid var(--sf-color-border);
+    padding: var(--sf-space-6) 0 0;
+    display: grid;
+    gap: var(--sf-space-2);
+    font-size: var(--sf-font-size-xs);
+    color: var(--sf-color-text-subtle);
+  }
+  .foot code { color: var(--sf-color-text-muted); }
+
+  @media (max-width: 640px) {
+    .top { padding: 0 var(--sf-space-4); }
+    .page { padding: 0 var(--sf-space-4) var(--sf-space-12); }
+    .hero { padding: var(--sf-space-10) 0 var(--sf-space-8); }
+    .seg button { padding: 5px 8px; }
+    .brand span { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <div class="mark"></div>
+    <div>
+      <b>StarFlow Components</b>
+      <span>tokens · v0.1</span>
+    </div>
+  </div>
+  <div class="seg" role="group" aria-label="主题">
+    <button type="button" data-theme="system">跟随系统</button>
+    <button type="button" data-theme="light">亮色</button>
+    <button type="button" data-theme="dark">暗色</button>
+  </div>
+</header>
+
+<main class="page">
+
+  <section class="hero">
+    <h1>Design Tokens</h1>
+    <p>三层变量：原始值只给语义层取值，组件只消费语义层，单个组件的默认值和覆盖钩子留在第三层。换主题只覆盖语义层，所以加一个主题不用碰任何组件。</p>
+    <div class="layers">
+      <div class="layer">
+        <span class="layer__tag">L1</span>
+        <span class="layer__text"><b>Primitive</b><em>原始值，只给 L2 引用</em></span>
+      </div>
+      <span class="layer__arrow">→</span>
+      <div class="layer">
+        <span class="layer__tag">L2</span>
+        <span class="layer__text"><b>Semantic</b><em>组件只消费这一层</em></span>
+      </div>
+      <span class="layer__arrow">→</span>
+      <div class="layer">
+        <span class="layer__tag">L3</span>
+        <span class="layer__text"><b>Component</b><em>单个组件的钩子</em></span>
+      </div>
+    </div>
+    <div class="hero__row">
+      <span class="pill">全局变量 <b id="count">—</b></span>
+      <span class="pill">组件 token <b id="ctoken-count">—</b></span>
+      <span class="pill">生效主题 <b id="resolved">—</b></span>
+      <span class="pill">依赖 <b>0</b></span>
+    </div>
+  </section>
+
+  <section class="sec" id="primitive">
+    <div class="sec__head">
+      <span class="sec__idx">01 / PRIMITIVE</span>
+      <h2>原始色阶</h2>
+      <p class="sec__desc">只作为 semantic 的取值来源，组件直接引用就等于把皮肤写死在组件里。状态色亮色取 600、暗色取 400，是为了两边都过对比度。</p>
+    </div>
+    <div class="ramps" id="ramps"></div>
+  </section>
+
+  <section class="sec" id="semantic">
+    <div class="sec__head">
+      <span class="sec__idx">02 / SEMANTIC</span>
+      <h2>语义色</h2>
+      <p class="sec__desc">组件里只该出现这些名字。<code>*-subtle</code> 是用 <code>color-mix</code> 从主色现算的浅底，省掉一整套浅色 primitive，也保证换主题时浅底自动跟着走。</p>
+    </div>
+    <div class="swatches" id="swatches"></div>
+  </section>
+
+  <section class="sec" id="component">
+    <div class="sec__head">
+      <span class="sec__idx">03 / COMPONENT</span>
+      <h2>组件 token</h2>
+      <p class="sec__desc">第三层只服务一个组件，默认值声明在组件自己的 <code>:host</code> 上，不进全局样式表 —— 组件删了，它的 token 跟着走。它只在两种情况下成立：语义层没有能直接表达的值（高度、密度这类组合值），或者要给外部留一个按实例覆盖的稳定钩子。单纯把语义变量改个名不算理由，那只是多一层查表。</p>
+    </div>
+    <div class="ctokens">
+      <div class="ctokens__table" id="ctokens"></div>
+      <div class="ctokens__side">
+        <div class="ctokens__variants">
+          <sf-button>默认</sf-button>
+          <sf-button variant="ghost">次要</sf-button>
+          <sf-button size="sm">小号</sf-button>
+          <sf-button disabled>禁用</sf-button>
+        </div>
+        <div class="play">
+          <div class="play__head">
+            <sf-button id="play-target">试一下</sf-button>
+            <code>只改这一个实例</code>
+          </div>
+          <label class="play__row">
+            <code>--sf-button-radius</code>
+            <input id="play-radius" type="range" min="0" max="20" step="1" value="6">
+            <output id="play-radius-out">6px</output>
+          </label>
+          <label class="play__row">
+            <code>--sf-button-height</code>
+            <input id="play-height" type="range" min="24" max="48" step="2" value="32">
+            <output id="play-height-out">32px</output>
+          </label>
+          <code class="play__code" id="play-code"></code>
+        </div>
+        <p class="ctokens__hint">写 <code>sf-button { --sf-button-bg: … }</code> 能整批换色，不用 <code>!important</code>；但写在祖先容器上的变量进不来 —— 继承输给 <code>:host</code> 里的声明，要命中按钮本身。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="space">
+    <div class="sec__head">
+      <span class="sec__idx">04 / SPACE</span>
+      <h2>间距</h2>
+      <p class="sec__desc">4px 网格，数字即倍数。<code>space-4</code> 就是 16px，不用回表查。</p>
+    </div>
+    <div class="spaces" id="spaces"></div>
+  </section>
+
+  <section class="sec" id="typography">
+    <div class="sec__head">
+      <span class="sec__idx">05 / TYPE</span>
+      <h2>字号</h2>
+      <p class="sec__desc">正文 14px 起步，UI 密度偏紧。行高单独成 token，组件里不写魔法数。</p>
+    </div>
+    <div class="type" id="type"></div>
+  </section>
+
+  <section class="sec" id="shape">
+    <div class="sec__head">
+      <span class="sec__idx">06 / SHAPE</span>
+      <h2>圆角与阴影</h2>
+      <p class="sec__desc">阴影是语义层的一部分 —— 暗色下它得换一套更黑更重的值，否则卡片在深底上等于没有层次。</p>
+    </div>
+    <h3 class="subhead">半径</h3>
+    <div class="shapes" id="shapes"></div>
+    <h3 class="subhead subhead--gap">阴影</h3>
+    <div class="shadows">
+      <div class="shadow__box" style="box-shadow: var(--sf-shadow-sm)">shadow-sm</div>
+      <div class="shadow__box" style="box-shadow: var(--sf-shadow-md)">shadow-md</div>
+      <div class="shadow__box" style="box-shadow: var(--sf-shadow-lg)">shadow-lg</div>
+      <div class="shadow__box" style="box-shadow: var(--sf-shadow-focus)">shadow-focus</div>
+    </div>
+  </section>
+
+  <section class="sec" id="motion">
+    <div class="sec__head">
+      <span class="sec__idx">07 / MOTION &amp; Z</span>
+      <h2>动效与层级</h2>
+      <p class="sec__desc">系统开了「减少动态效果」时，三个时长会被归零，组件写 transition 不必各自判断。</p>
+    </div>
+    <div class="kvwrap" id="kv"></div>
+  </section>
+
+  <section class="sec" id="compose">
+    <div class="sec__head">
+      <span class="sec__idx">08 / COMPOSE</span>
+      <h2>组合预览</h2>
+      <p class="sec__desc">按钮已经是真的 <code>&lt;sf-button&gt;</code>，输入框和徽章还是临时手写的 —— 它们只用变量、没有一个硬编码色值，换主题时整块跟着变。等它们也变成组件，第三层就各自跟着组件走。</p>
+    </div>
+    <div class="demo">
+      <div class="demo__title">订阅更新</div>
+      <p class="demo__desc">新组件落地时通知我，每月最多一封。</p>
+      <input class="demo-input" type="email" placeholder="you@example.com">
+      <div class="demo__row">
+        <sf-button>订阅</sf-button>
+        <sf-button variant="ghost">稍后</sf-button>
+      </div>
+      <div class="demo-badges">
+        <span class="demo-badge demo-badge--success">已同步</span>
+        <span class="demo-badge demo-badge--warning">待审核</span>
+        <span class="demo-badge demo-badge--danger">构建失败</span>
+        <span class="demo-badge demo-badge--accent">新</span>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div>tokens.css — L1 + L2，全局变量，可直接 <code>&lt;link&gt;</code></div>
+    <div>theme.js — <code>setTheme()</code> / <code>getTheme()</code>，偏好存 localStorage，system 跟随系统并监听变化</div>
+    <div>sf-button.js — 第一个组件；L3 token 写在它的 <code>:host</code> 上，不在这里</div>
+    <div>组件消费方式：<code>color: var(--sf-color-text)</code></div>
+  </footer>
+
+</main>
+
+<script type="module" src="src/components/sf-button.js"></script>
+<script type="module">
+  import { getTheme, getResolvedTheme, setTheme } from './src/tokens/theme.js';
+
+  const SEMANTIC = {
+    '表面': [
+      ['--sf-color-bg', '页面底色'],
+      ['--sf-color-surface', '卡片 / 弹层'],
+      ['--sf-color-surface-hover', '悬停态'],
+      ['--sf-color-surface-sunken', '凹陷区 / 轨道'],
+    ],
+    '文本': [
+      ['--sf-color-text', '正文'],
+      ['--sf-color-text-muted', '次要'],
+      ['--sf-color-text-subtle', '占位 / 禁用'],
+      ['--sf-color-text-inverse', '反色'],
+    ],
+    '描边': [
+      ['--sf-color-border', '分割线'],
+      ['--sf-color-border-strong', '控件边界'],
+    ],
+    '主色': [
+      ['--sf-color-accent', '主色'],
+      ['--sf-color-accent-hover', '悬停'],
+      ['--sf-color-accent-active', '按下'],
+      ['--sf-color-accent-subtle', '浅底'],
+      ['--sf-color-on-accent', '主色上的文字'],
+    ],
+    '状态': [
+      ['--sf-color-success', '成功'],
+      ['--sf-color-success-subtle', '成功浅底'],
+      ['--sf-color-warning', '警告'],
+      ['--sf-color-warning-subtle', '警告浅底'],
+      ['--sf-color-danger', '危险'],
+      ['--sf-color-danger-subtle', '危险浅底'],
+    ],
+    '焦点': [
+      ['--sf-color-ring', '焦点环'],
+    ],
+  };
+
+  const RAMPS = [
+    ['neutral', ['0', '50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950']],
+    ['blue', ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900']],
+    ['green', ['400', '500', '600']],
+    ['red', ['400', '500', '600']],
+    ['amber', ['400', '500', '600']],
+  ];
+
+  const SPACES = [1, 2, 3, 4, 5, 6, 8, 10, 12, 16];
+
+  const TYPE = [
+    ['--sf-font-size-3xl', '28px', '页面标题'],
+    ['--sf-font-size-2xl', '22px', '区块标题'],
+    ['--sf-font-size-xl', '18px', '卡片标题'],
+    ['--sf-font-size-lg', '16px', '强调正文'],
+    ['--sf-font-size-md', '14px', '正文'],
+    ['--sf-font-size-sm', '13px', '次要 / 表单'],
+    ['--sf-font-size-xs', '12px', '标签 / 辅助'],
+  ];
+
+  const SHAPES = [
+    ['--sf-radius-xs', '4px'],
+    ['--sf-radius-sm', '6px'],
+    ['--sf-radius-md', '8px'],
+    ['--sf-radius-lg', '12px'],
+    ['--sf-radius-xl', '16px'],
+    ['--sf-radius-full', '9999px'],
+  ];
+
+  const MOTION = [
+    ['--sf-duration-fast', '120ms'],
+    ['--sf-duration-base', '180ms'],
+    ['--sf-duration-slow', '280ms'],
+    ['--sf-ease', 'cubic-bezier(.2,.8,.2,1)'],
+    ['--sf-ease-in-out', 'cubic-bezier(.4,0,.2,1)'],
+  ];
+
+  const Z = [
+    ['--sf-z-dropdown', '1000'],
+    ['--sf-z-sticky', '1020'],
+    ['--sf-z-overlay', '1100'],
+    ['--sf-z-modal', '1110'],
+    ['--sf-z-toast', '1200'],
+    ['--sf-z-tooltip', '1300'],
+  ];
+
+  /* L3：写死在组件里的，这里只是把它列出来（真相源在 sf-button.js 的 :host） */
+  const CTOKENS = [
+    ['--sf-button-bg', 'var(--sf-color-accent)', '实心底色'],
+    ['--sf-button-bg-hover', 'var(--sf-color-accent-hover)', '悬停底色'],
+    ['--sf-button-fg', 'var(--sf-color-on-accent)', '文字色'],
+    ['--sf-button-border', 'transparent', '描边，ghost 变体才用得上'],
+    ['--sf-button-height', '32px', '高度 —— 语义层没有能直接表达的值，这才是它存在的理由'],
+    ['--sf-button-padding-x', 'var(--sf-space-3)', '左右内边距'],
+    ['--sf-button-radius', 'var(--sf-radius-sm)', '圆角'],
+    ['--sf-button-font-size', 'var(--sf-font-size-sm)', '字号'],
+  ];
+
+  const root = document.documentElement;
+
+  /* 离屏探针：让浏览器把 var() 真正算出来，而不是把表达式原样印在页面上 */
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:fixed;top:0;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none';
+  document.body.append(probe);
+
+  /* color-mix() 的计算结果是 oklab(...)，直接印出来没法看。
+     过一遍 1×1 canvas 换成 sRGB —— 顺便把 alpha 也算准。 */
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 1;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+  function toRgb(cssColor) {
+    ctx.clearRect(0, 0, 1, 1);
+    ctx.fillStyle = '#000000';
+    ctx.fillStyle = cssColor;
+    ctx.fillRect(0, 0, 1, 1);
+    const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+    return a === 255
+      ? `rgb(${r}, ${g}, ${b})`
+      : `rgba(${r}, ${g}, ${b}, ${Math.round((a / 255) * 100) / 100})`;
+  }
+
+  function resolvedValue(name) {
+    if (name.includes('shadow')) {
+      probe.style.boxShadow = 'none';
+      probe.style.boxShadow = `var(${name})`;
+      return getComputedStyle(probe).boxShadow;
+    }
+    probe.style.backgroundColor = 'transparent';
+    probe.style.backgroundColor = `var(${name})`;
+    const color = getComputedStyle(probe).backgroundColor;
+    if (color && color !== 'rgba(0, 0, 0, 0)') return toRgb(color);
+    return getComputedStyle(root).getPropertyValue(name).trim();
+  }
+
+  /* 语义色 */
+  const swatches = document.getElementById('swatches');
+  for (const [group, tokens] of Object.entries(SEMANTIC)) {
+    const title = document.createElement('h3');
+    title.className = 'subhead';
+    title.textContent = group;
+    const grid = document.createElement('div');
+    grid.className = 'swatches__grid';
+    for (const [name, note] of tokens) {
+      const card = document.createElement('div');
+      card.className = 'sw';
+      card.innerHTML = `
+        <div class="sw__chip" style="background: var(${name})"></div>
+        <div class="sw__body">
+          <code class="sw__name">${name}</code>
+          <span class="sw__note">${note}</span>
+          <code class="sw__val" data-token="${name}"></code>
+        </div>`;
+      grid.append(card);
+    }
+    swatches.append(title, grid);
+  }
+
+  /* 色阶 */
+  const ramps = document.getElementById('ramps');
+  ramps.innerHTML = RAMPS.map(([family, steps]) => `
+    <div class="ramp">
+      <code class="ramp__label">${family}</code>
+      <div class="ramp__track">
+        ${steps.map((step) => `
+          <div class="ramp__col">
+            <div class="ramp__step" style="background: var(--sf-${family}-${step})"></div>
+            <span>${step}</span>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+
+  /* 间距 */
+  document.getElementById('spaces').innerHTML = SPACES.map((n) => `
+    <div class="space__row">
+      <code class="space__name">--sf-space-${n}</code>
+      <div class="space__bar" style="width: var(--sf-space-${n})"></div>
+      <code class="space__px">${n * 4}px</code>
+    </div>`).join('');
+
+  /* 字号 */
+  document.getElementById('type').innerHTML = TYPE.map(([name, px, note]) => `
+    <div class="type__row">
+      <div class="type__key">
+        <code>${name}</code>
+        <span>${px} · ${note}</span>
+      </div>
+      <div class="type__sample" style="font-size: var(${name})">星流 StarFlow 0123</div>
+    </div>`).join('');
+
+  /* 圆角 */
+  document.getElementById('shapes').innerHTML = SHAPES.map(([name, px]) => `
+    <div class="shape">
+      <div class="shape__box" style="border-radius: var(${name})">${px}</div>
+      <code class="shape__label">${name}</code>
+    </div>`).join('');
+
+  /* 组件 token 表 */
+  document.getElementById('ctokens').innerHTML = CTOKENS.map(([name, def, note]) => `
+    <div class="ctoken">
+      <div class="ctoken__top">
+        <code class="ctoken__name">${name}</code>
+        <code class="ctoken__def">${def}</code>
+      </div>
+      <span class="ctoken__note">${note}</span>
+    </div>`).join('');
+  document.getElementById('ctoken-count').textContent = CTOKENS.length;
+
+  /* 覆盖演示：写在元素自己身上，只影响这一个实例 */
+  const playTarget = document.getElementById('play-target');
+  const playRadius = document.getElementById('play-radius');
+  const playHeight = document.getElementById('play-height');
+  const playCode = document.getElementById('play-code');
+
+  function syncPlay() {
+    const radius = `${playRadius.value}px`;
+    const height = `${playHeight.value}px`;
+    playTarget.style.setProperty('--sf-button-radius', radius);
+    playTarget.style.setProperty('--sf-button-height', height);
+    document.getElementById('play-radius-out').textContent = radius;
+    document.getElementById('play-height-out').textContent = height;
+    playCode.textContent = `style="--sf-button-radius: ${radius}; --sf-button-height: ${height}"`;
+  }
+  playRadius.addEventListener('input', syncPlay);
+  playHeight.addEventListener('input', syncPlay);
+  syncPlay();
+
+  /* 动效 / 层级：两组分列，横着排会读成不相关的键值对 */
+  const renderKv = (rows) => `
+    <div class="kv">
+      ${rows.map(([name, value]) => `
+        <div class="k">${name}</div>
+        <div class="v">${value}</div>`).join('')}
+    </div>`;
+  document.getElementById('kv').innerHTML = renderKv(MOTION) + renderKv(Z);
+
+  /* 变量总数：直接数样式表，不手写 */
+  (function countTokens() {
+    const names = new Set();
+    const walk = (rules) => {
+      for (const rule of rules) {
+        if (rule.style) {
+          for (const prop of rule.style) {
+            if (prop.startsWith('--sf-')) names.add(prop);
+          }
+        }
+        if (rule.cssRules) walk(rule.cssRules);
+      }
+    };
+    for (const sheet of document.styleSheets) {
+      try { walk(sheet.cssRules); } catch { /* 跨域样式表跳过 */ }
+    }
+    document.getElementById('count').textContent = names.size;
+  })();
+
+  /* 主题切换 */
+  const seg = document.querySelector('.seg');
+  const resolvedLabel = document.getElementById('resolved');
+
+  function refresh() {
+    document.querySelectorAll('[data-token]').forEach((el) => {
+      el.textContent = resolvedValue(el.dataset.token);
+    });
+    seg.querySelectorAll('button').forEach((btn) => {
+      btn.setAttribute('aria-pressed', String(btn.dataset.theme === getTheme()));
+    });
+    resolvedLabel.textContent = getResolvedTheme();
+  }
+
+  seg.addEventListener('click', (event) => {
+    const btn = event.target.closest('button[data-theme]');
+    if (!btn) return;
+    setTheme(btn.dataset.theme);
+  });
+
+  document.addEventListener('sf-themechange', refresh);
+  refresh();
+</script>
+
+</body>
+</html>

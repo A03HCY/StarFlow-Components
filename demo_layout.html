@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StarFlow · 布局组件</title>
+<link rel="stylesheet" href="src/tokens/tokens.css">
+<link rel="stylesheet" href="demo/shell.css">
+<script>
+  (function () {
+    try {
+      var pref = localStorage.getItem('sf-theme') || 'system';
+      var dark = pref === 'dark' ||
+        (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.setAttribute('data-sf-theme', dark ? 'dark' : 'light');
+    } catch (e) {
+      document.documentElement.setAttribute('data-sf-theme', 'light');
+    }
+  })();
+</script>
+<style>
+  .ph {
+    display: grid;
+    place-items: center;
+    box-sizing: border-box;
+    min-height: 44px;
+    padding: var(--sf-space-3);
+    border: var(--sf-border-width) dashed var(--sf-color-border-strong);
+    border-radius: var(--sf-radius-sm);
+    font-size: var(--sf-font-size-xs);
+    color: var(--sf-color-text-muted);
+    text-align: center;
+  }
+  .ph--solid {
+    border-style: solid;
+    background: var(--sf-color-surface);
+  }
+
+  /* 演示容器：给它个高度和边框，才看得出"撑满 / 居中 / 留白" */
+  .frame {
+    box-sizing: border-box;
+    width: 100%;
+    overflow: hidden;
+    border: var(--sf-border-width) solid var(--sf-color-border);
+    border-radius: var(--sf-radius-lg);
+    background: var(--sf-color-bg);
+  }
+
+  .frame--page { height: 340px; }
+  .frame--page .mock-top {
+    display: flex;
+    align-items: center;
+    height: 44px;
+    padding: 0 var(--sf-space-4);
+    background: var(--sf-color-surface);
+    border-bottom: var(--sf-border-width) solid var(--sf-color-border);
+    font-size: var(--sf-font-size-sm);
+    color: var(--sf-color-text-muted);
+  }
+  .frame--page .mock-body {
+    display: grid;
+    place-items: center;
+    padding: var(--sf-space-4);
+    font-size: var(--sf-font-size-sm);
+    color: var(--sf-color-text-subtle);
+  }
+  .frame--page .mock-foot {
+    padding: var(--sf-space-3) var(--sf-space-4);
+    border-top: var(--sf-border-width) solid var(--sf-color-border);
+    font-size: var(--sf-font-size-xs);
+    color: var(--sf-color-text-subtle);
+  }
+
+  .guides { background: var(--sf-color-surface-sunken); }
+  .guides sf-container { background: var(--sf-color-accent-subtle); }
+  .guides .ph { border-color: var(--sf-color-accent); color: var(--sf-color-accent); background: transparent; }
+
+  .pane-body {
+    height: 200px;
+    padding: var(--sf-space-4);
+    font-size: var(--sf-font-size-sm);
+    color: var(--sf-color-text-muted);
+  }
+
+  .dash {
+    display: grid;
+    gap: var(--sf-space-4);
+    padding: var(--sf-space-4);
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <div class="mark"></div>
+    <div>
+      <b>StarFlow Components</b>
+      <span>layout · v0.1</span>
+    </div>
+  </div>
+  <div class="seg" role="group" aria-label="主题">
+    <button type="button" data-theme="system">跟随系统</button>
+    <button type="button" data-theme="light">亮色</button>
+    <button type="button" data-theme="dark">暗色</button>
+  </div>
+</header>
+
+<main class="page">
+
+  <section class="hero">
+    <h1>布局组件</h1>
+    <p>6 个排版容器。清单里的 CardGrid 没做 —— 它就是 <code>&lt;sf-grid min-size="280px"&gt;</code>，单独一个组件只是换个默认值。这些组件都不带业务语义，只负责宽度、间距和高度分配。</p>
+    <div class="hero__row">
+      <span class="pill">组件 <b>6 / 7</b></span>
+      <span class="pill">间距刻度 <b>0–16</b></span>
+      <span class="pill">生效主题 <b id="resolved">—</b></span>
+      <span class="pill">依赖 <b>0</b></span>
+    </div>
+  </section>
+
+  <!-- 01 Page -->
+  <section class="sec" id="page">
+    <div class="sec__head">
+      <span class="sec__idx">01 / PAGE</span>
+      <h2>Page</h2>
+      <p class="sec__desc">只做一件事：把视口高度分好 —— 撑满一屏、内容区吃掉剩余高度、页脚贴底。刻意不让内容区自己滚：嵌套滚动条对读屏和触控板都是坑，让文档滚，sticky 顶栏照样贴住。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">shell</span>
+        <div class="frame frame--page">
+          <sf-page style="height: 100%; min-height: 0;">
+            <div slot="header" class="mock-top">header 槽（顶栏）</div>
+            <div class="mock-body">默认槽 —— 吃掉剩余高度</div>
+            <div slot="footer" class="mock-foot">footer 槽（贴底）</div>
+          </sf-page>
+        </div>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">用法</span>
+        <span class="spec__code">&lt;sf-page&gt; + &lt;sf-topbar slot="header"&gt;</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 Container -->
+  <section class="sec" id="container">
+    <div class="sec__head">
+      <span class="sec__idx">02 / CONTAINER</span>
+      <h2>Container</h2>
+      <p class="sec__desc">最大宽度居中 + 左右留白（窄屏自动收窄）。<code>sm / md / lg / full</code> 四档，默认 md。要某个页面特殊宽度，覆盖 <code>--sf-container-width</code> 一个变量就够。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row" style="display: block;">
+        <span class="spec__label">size</span>
+        <div class="guides" style="padding: 12px 0; border-radius: var(--sf-radius-md);">
+          <sf-container size="sm"><div class="ph">size="sm"（640）</div></sf-container>
+          <sf-container size="md" style="margin-top: 8px;"><div class="ph">size="md"（880，默认）</div></sf-container>
+          <sf-container size="lg" style="margin-top: 8px;"><div class="ph">size="lg"（1120）</div></sf-container>
+          <sf-container size="full" style="margin-top: 8px;"><div class="ph">size="full"</div></sf-container>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 Stack -->
+  <section class="sec" id="stack">
+    <div class="sec__head">
+      <span class="sec__idx">03 / STACK</span>
+      <h2>Stack</h2>
+      <p class="sec__desc">一维排布。<code>gap</code> 只接受间距刻度里的数字（0/1/2/3/4/5/6/8/10/12/16），传别的值会被忽略并回落默认——免得有人在组件里写魔法数。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">column</span>
+        <sf-stack gap="3" style="flex: 1; max-width: 300px;">
+          <div class="ph">gap=3（12px）</div>
+          <div class="ph">第二个</div>
+          <div class="ph">第三个</div>
+        </sf-stack>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">row</span>
+        <sf-stack direction="row" gap="2" align="center" justify="between" style="width: 100%;">
+          <div class="ph" style="min-width: 90px;">A</div>
+          <div class="ph" style="min-width: 90px;">B</div>
+          <div class="ph" style="min-width: 90px;">C</div>
+        </sf-stack>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 Grid -->
+  <section class="sec" id="grid">
+    <div class="sec__head">
+      <span class="sec__idx">04 / GRID</span>
+      <h2>Grid</h2>
+      <p class="sec__desc">不给 <code>columns</code> 时按 <code>min-size</code> 自动决定列数；给了就是固定列数，此时 min-size 让位（改成 minmax(0,1fr)），否则窄容器里会横向溢出。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row" style="display: block;">
+        <span class="spec__label">auto-fit</span>
+        <sf-grid min-size="180px" gap="3" style="margin-top: 8px;">
+          <div class="ph">min-size 180</div>
+          <div class="ph">容器变窄会自动减列</div>
+          <div class="ph">这是第三块</div>
+          <div class="ph">这是第四块</div>
+        </sf-grid>
+      </div>
+      <div class="spec__row" style="display: block;">
+        <span class="spec__label">columns=3</span>
+        <sf-grid columns="3" gap="3" style="margin-top: 8px;">
+          <div class="ph">固定 3 列</div>
+          <div class="ph">不等宽会被拉齐</div>
+          <div class="ph">第三</div>
+        </sf-grid>
+      </div>
+      <div class="spec__row" style="display: block;">
+        <span class="spec__label">卡片栅格</span>
+        <sf-grid min-size="280px" gap="3" style="margin-top: 8px;">
+          <div class="ph ph--solid">min-size="280px" 就是原来的 CardGrid</div>
+          <div class="ph ph--solid">不需要单独的组件</div>
+        </sf-grid>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 Panel -->
+  <section class="sec" id="panel">
+    <div class="sec__head">
+      <span class="sec__idx">05 / PANEL</span>
+      <h2>Panel</h2>
+      <p class="sec__desc">标题 + 操作 / 正文 / 页脚三段。没有标题操作时头部整条收起，没有页脚时页脚收起。<code>flush</code> 去掉正文内边距，放表格或列表时用。</p>
+    </div>
+    <div class="spec">
+      <sf-grid min-size="300px" gap="4">
+        <sf-panel heading="最近活动">
+          <sf-button slot="actions" size="sm" variant="ghost">全部</sf-button>
+          <sf-stack gap="2">
+            <div class="ph">部署到 production</div>
+            <div class="ph">合并 PR #128</div>
+          </sf-stack>
+          <div slot="footer">更新于 3 分钟前</div>
+        </sf-panel>
+
+        <sf-panel heading="只有标题">
+          <div class="ph">没有 actions 也没有 footer</div>
+        </sf-panel>
+
+        <sf-panel flush plain>
+          <div class="ph" style="border: 0; min-height: 80px;">flush + plain：贴边、无底色无边框</div>
+        </sf-panel>
+      </sf-grid>
+    </div>
+  </section>
+
+  <!-- 06 SplitPane -->
+  <section class="sec" id="split-pane">
+    <div class="sec__head">
+      <span class="sec__idx">06 / SPLIT PANE</span>
+      <h2>SplitPane</h2>
+      <p class="sec__desc">左右两栏 + 可拖的分隔条。拖动按 <code>min-size</code> 夹住，两侧都不会被挤没；键盘左右键调 2%，Home / End 到两端——只能用鼠标拖的东西，对键盘用户等于不存在。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">ratio=0.3</span>
+        <div class="frame" style="flex: 1;">
+          <sf-split-pane id="split" ratio="0.3" min-size="140px" style="height: 220px;">
+            <div slot="start" class="pane-body">左侧（可滚动，宽度按比例）</div>
+            <div slot="end" class="pane-body">右侧（吃掉剩余宽度）<br>拖动中间的分隔条试试</div>
+          </sf-split-pane>
+        </div>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">事件</span>
+        <span class="spec__code">当前比例：<b id="split-out">0.30</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 组合 -->
+  <section class="sec" id="compose">
+    <div class="sec__head">
+      <span class="sec__idx">07 / COMPOSE</span>
+      <h2>拼起来</h2>
+      <p class="sec__desc">Page + Container + Grid + Panel + Stack，全部只用 layout 组件搭出来的一个仪表盘。</p>
+    </div>
+    <div class="frame" style="height: 420px;">
+      <sf-page style="height: 100%; min-height: 0;">
+        <div slot="header" class="mock-top">StarFlow · 仪表盘</div>
+        <sf-container size="md" style="padding-block: var(--sf-space-5); overflow: auto; height: 100%;">
+          <sf-stack gap="4">
+            <sf-grid min-size="200px" gap="3">
+              <sf-panel heading="构建成功率"><div class="ph ph--solid" style="border:0;">98.2%</div></sf-panel>
+              <sf-panel heading="平均耗时"><div class="ph ph--solid" style="border:0;">42s</div></sf-panel>
+              <sf-panel heading="失败次数"><div class="ph ph--solid" style="border:0;">4</div></sf-panel>
+            </sf-grid>
+
+            <sf-panel heading="最近构建" flush>
+              <sf-stack gap="0">
+                <div class="ph" style="border:0; border-bottom: 1px solid var(--sf-color-border); border-radius:0; min-height:36px; padding: 0 var(--sf-space-4); place-items: center start;">#128 · 6 分钟前</div>
+                <div class="ph" style="border:0; border-bottom: 1px solid var(--sf-color-border); border-radius:0; min-height:36px; padding: 0 var(--sf-space-4); place-items: center start;">#127 · 42 分钟前</div>
+                <div class="ph" style="border:0; border-radius:0; min-height:36px; padding: 0 var(--sf-space-4); place-items: center start;">#126 · 2 小时前</div>
+              </sf-stack>
+            </sf-panel>
+          </sf-stack>
+        </sf-container>
+      </sf-page>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div>6 个在 <code>src/components/</code>，都没有业务语义，只负责宽度、间距和高度分配</div>
+    <div>Stack / Grid 的 <code>gap</code> 只吃间距刻度的数字，值非法就回落默认</div>
+    <div>CardGrid 用 <code>&lt;sf-grid min-size="280px"&gt;</code>，不单独做组件</div>
+  </footer>
+
+</main>
+
+<script type="module">
+  import { initShell } from './demo/shell.js';
+  import './src/index.js';
+
+  initShell();
+
+  const out = document.getElementById('split-out');
+  document.getElementById('split').addEventListener('sf-resize', (event) => {
+    out.textContent = event.detail.ratio.toFixed(2);
+  });
+</script>
+
+</body>
+</html>

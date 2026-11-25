@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StarFlow · 表单组件</title>
+<link rel="stylesheet" href="src/tokens/tokens.css">
+<link rel="stylesheet" href="demo/shell.css">
+<script>
+  (function () {
+    try {
+      var pref = localStorage.getItem('sf-theme') || 'system';
+      var dark = pref === 'dark' ||
+        (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.setAttribute('data-sf-theme', dark ? 'dark' : 'light');
+    } catch (e) {
+      document.documentElement.setAttribute('data-sf-theme', 'light');
+    }
+  })();
+</script>
+<style>
+  /* 只放这个页面自己的排版 */
+  .spec__row sf-input,
+  .spec__row sf-textarea,
+  .spec__row sf-select,
+  .spec__row sf-multiselect,
+  .spec__row sf-slider { max-width: 300px; }
+
+  .group { display: grid; gap: var(--sf-space-3); }
+
+  .form { display: grid; gap: var(--sf-space-4); max-width: 360px; }
+  .form__actions { display: flex; gap: var(--sf-space-2); padding-top: var(--sf-space-1); }
+
+  .out {
+    margin: 0;
+    padding: var(--sf-space-3);
+    max-width: 360px;
+    overflow: auto;
+    background: var(--sf-color-surface-sunken);
+    border: var(--sf-border-width) solid var(--sf-color-border);
+    border-radius: var(--sf-radius-sm);
+    font-family: var(--sf-font-mono);
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--sf-color-text-muted);
+  }
+
+  .pair { display: flex; flex-wrap: wrap; gap: var(--sf-space-6); align-items: flex-start; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <div class="mark"></div>
+    <div>
+      <b>StarFlow Components</b>
+      <span>form · v0.1</span>
+    </div>
+  </div>
+  <div class="seg" role="group" aria-label="主题">
+    <button type="button" data-theme="system">跟随系统</button>
+    <button type="button" data-theme="light">亮色</button>
+    <button type="button" data-theme="dark">暗色</button>
+  </div>
+</header>
+
+<main class="page">
+
+  <section class="hero">
+    <h1>表单组件</h1>
+    <p>9 个控件全部实现了 formAssociated：<code>&lt;form&gt;</code> 能直接提交、<code>new FormData()</code> 能拿到值、reset 能回到初始态。下面最后一节是真的表单，提交后把 FormData 打出来。</p>
+    <div class="hero__row">
+      <span class="pill">组件 <b>9</b></span>
+      <span class="pill">控件高度 <b>28 / 32</b></span>
+      <span class="pill">生效主题 <b id="resolved">—</b></span>
+      <span class="pill">依赖 <b>0</b></span>
+    </div>
+  </section>
+
+  <!-- 01 Input -->
+  <section class="sec" id="input">
+    <div class="sec__head">
+      <span class="sec__idx">01 / INPUT</span>
+      <h2>Input</h2>
+      <p class="sec__desc">原生 <code>&lt;input&gt;</code> 放在里面，键盘、输入法、密码管理都是浏览器负责。外面那层 box 用来画焦点环 —— 原生 input 的 focus 没法画外发光。前后可以插图标。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">default</span>
+        <sf-input placeholder="you@example.com"></sf-input>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">prefix</span>
+        <sf-input placeholder="搜索组件">
+          <svg slot="prefix" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <circle cx="7" cy="7" r="4.2" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M10.2 10.2L13.5 13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </sf-input>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">size=sm</span>
+        <sf-input size="sm" placeholder="小号，28px 高"></sf-input>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">invalid</span>
+        <sf-input invalid value="not-an-email"></sf-input>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">disabled</span>
+        <sf-input disabled value="不可编辑"></sf-input>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 Textarea -->
+  <section class="sec" id="textarea">
+    <div class="sec__head">
+      <span class="sec__idx">02 / TEXTAREA</span>
+      <h2>Textarea</h2>
+      <p class="sec__desc">和 Input 同构，区别是高度交给 <code>rows</code> 和拖动决定，所以不锁控件高度。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">rows=3</span>
+        <sf-textarea rows="3" placeholder="写点备注…"></sf-textarea>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">disabled</span>
+        <sf-textarea rows="2" disabled value="不可编辑"></sf-textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 Select -->
+  <section class="sec" id="select">
+    <div class="sec__head">
+      <span class="sec__idx">03 / SELECT</span>
+      <h2>Select</h2>
+      <p class="sec__desc">触发器就是宿主本身（<code>role="combobox"</code>），选项是光 DOM 里的 <code>&lt;sf-option&gt;</code>。支持上下键 / Home / End / Enter，放不下会自动翻到上方。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">placeholder</span>
+        <sf-select placeholder="选择城市">
+          <sf-option value="bj">北京</sf-option>
+          <sf-option value="sh">上海</sf-option>
+          <sf-option value="gz" disabled>广州（暂无）</sf-option>
+          <sf-option value="sz">深圳</sf-option>
+        </sf-select>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">已选</span>
+        <sf-select value="sh">
+          <sf-option value="bj">北京</sf-option>
+          <sf-option value="sh">上海</sf-option>
+          <sf-option value="sz">深圳</sf-option>
+        </sf-select>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">disabled</span>
+        <sf-select value="bj" disabled>
+          <sf-option value="bj">北京</sf-option>
+        </sf-select>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 MultiSelect -->
+  <section class="sec" id="multiselect">
+    <div class="sec__head">
+      <span class="sec__idx">04 / MULTISELECT</span>
+      <h2>MultiSelect</h2>
+      <p class="sec__desc">选中不关列表（要连选），已选项变成 chip，回车在已选项上是取消。表单值是多个同名条目，所以提交时是数组。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">已选</span>
+        <sf-multiselect placeholder="选择标签">
+          <sf-option selected value="react">React</sf-option>
+          <sf-option selected value="ts">TypeScript</sf-option>
+          <sf-option value="css">CSS</sf-option>
+          <sf-option value="node">Node</sf-option>
+        </sf-multiselect>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">空</span>
+        <sf-multiselect placeholder="还没选">
+          <sf-option value="a">选项 A</sf-option>
+          <sf-option value="b">选项 B</sf-option>
+        </sf-multiselect>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">disabled</span>
+        <sf-multiselect disabled placeholder="不可选">
+          <sf-option value="a">选项 A</sf-option>
+        </sf-multiselect>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 Checkbox -->
+  <section class="sec" id="checkbox">
+    <div class="sec__head">
+      <span class="sec__idx">05 / CHECKBOX</span>
+      <h2>Checkbox</h2>
+      <p class="sec__desc">视觉是 shadow 里的方块，行为仍是原生 checkbox：空格切换、读屏角色、半选态都由浏览器给。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">state</span>
+        <sf-checkbox>未选</sf-checkbox>
+        <sf-checkbox checked>已选</sf-checkbox>
+        <sf-checkbox indeterminate>半选</sf-checkbox>
+        <sf-checkbox disabled>禁用</sf-checkbox>
+        <sf-checkbox checked disabled>选中禁用</sf-checkbox>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 Radio -->
+  <section class="sec" id="radio">
+    <div class="sec__head">
+      <span class="sec__idx">06 / RADIO</span>
+      <h2>Radio</h2>
+      <p class="sec__desc">原生 radio 只在同一棵 DOM 树里互斥，每个组件各有 shadow root 就连不成一组，所以按 name 自己维护分组表；方向键在组内移动也一并实现了。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">group</span>
+        <sf-radio name="plan" value="free">免费版</sf-radio>
+        <sf-radio name="plan" value="pro" checked>专业版</sf-radio>
+        <sf-radio name="plan" value="team">团队版</sf-radio>
+        <sf-radio name="plan" value="ent" disabled>企业版</sf-radio>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 Switch -->
+  <section class="sec" id="switch">
+    <div class="sec__head">
+      <span class="sec__idx">07 / SWITCH</span>
+      <h2>Switch</h2>
+      <p class="sec__desc">用 <code>role="switch"</code> 而不是 checkbox —— 开关不是"打勾"，读屏该听到的是"开/关"。文字包在按钮里，整块可点。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">state</span>
+        <sf-switch checked>接收通知</sf-switch>
+        <sf-switch>接收通知</sf-switch>
+        <sf-switch checked disabled>禁用</sf-switch>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 Slider -->
+  <section class="sec" id="slider">
+    <div class="sec__head">
+      <span class="sec__idx">08 / SLIDER</span>
+      <h2>Slider</h2>
+      <p class="sec__desc">原生 range 负责拖动和键盘，外观自己画：已填充那段用渐变做，百分比由 JS 写进内部变量 <code>--_pct</code>。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">show-value</span>
+        <sf-slider value="40" show-value></sf-slider>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">step=10</span>
+        <sf-slider min="0" max="100" step="10" value="70" show-value></sf-slider>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">disabled</span>
+        <sf-slider value="30" show-value disabled></sf-slider>
+      </div>
+    </div>
+  </section>
+
+  <!-- 09 Field -->
+  <section class="sec" id="field">
+    <div class="sec__head">
+      <span class="sec__idx">09 / FIELD</span>
+      <h2>Field</h2>
+      <p class="sec__desc">label + 必填星号 + 说明 + 错误。它不管控件的值，只管"围绕控件那圈东西"。有错误时说明文字自动让位 —— 两个都显示只会互相打脸。</p>
+    </div>
+    <div class="spec">
+      <div class="pair">
+        <div class="group" style="width: 300px;">
+          <sf-field label="邮箱" hint="只用来发通知，不会公开" required>
+            <sf-input type="email" placeholder="you@example.com"></sf-input>
+          </sf-field>
+          <sf-field label="邮箱" error="这个邮箱已经注册过了" required>
+            <sf-input type="email" value="taken@example.com" invalid></sf-input>
+          </sf-field>
+        </div>
+        <div class="group" style="width: 300px;">
+          <sf-field label="方案">
+            <sf-select value="pro">
+              <sf-option value="free">免费版</sf-option>
+              <sf-option value="pro">专业版</sf-option>
+            </sf-select>
+          </sf-field>
+          <sf-field label="备注" hint="一句话说明你的需求">
+            <sf-textarea rows="2" placeholder="可选"></sf-textarea>
+          </sf-field>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 Form -->
+  <section class="sec" id="form">
+    <div class="sec__head">
+      <span class="sec__idx">10 / FORM</span>
+      <h2>真实表单</h2>
+      <p class="sec__desc">全部是上面的组件，放进普通 <code>&lt;form&gt;</code> 里。提交走 <code>requestSubmit()</code>（<code>sf-button type="submit"</code> 自己调的），值来自 FormData。</p>
+    </div>
+    <div class="spec">
+      <div class="pair">
+      <form id="demo-form" class="form">
+        <sf-field label="姓名" required>
+          <sf-input name="name" placeholder="张三"></sf-input>
+        </sf-field>
+        <sf-field label="邮箱" hint="用于接收构建通知" required>
+          <sf-input name="email" type="email" placeholder="you@example.com"></sf-input>
+        </sf-field>
+        <sf-field label="方案">
+          <sf-select name="plan" placeholder="请选择">
+            <sf-option selected value="pro">专业版</sf-option>
+            <sf-option value="free">免费版</sf-option>
+            <sf-option value="team">团队版</sf-option>
+          </sf-select>
+        </sf-field>
+        <sf-field label="标签">
+          <sf-multiselect name="tags" placeholder="选几个">
+            <sf-option selected value="react">React</sf-option>
+            <sf-option value="ts">TypeScript</sf-option>
+            <sf-option value="css">CSS</sf-option>
+          </sf-multiselect>
+        </sf-field>
+        <sf-field label="备注">
+          <sf-textarea name="note" rows="2" placeholder="可选"></sf-textarea>
+        </sf-field>
+        <sf-checkbox name="agree" value="yes">我已阅读并同意条款</sf-checkbox>
+        <sf-switch name="notify" value="on" checked>接收更新通知</sf-switch>
+        <div class="form__actions">
+          <sf-button type="submit">提交</sf-button>
+          <sf-button type="reset" variant="ghost">重置</sf-button>
+        </div>
+      </form>
+
+      <div class="group" style="width: 360px;">
+        <span class="spec__label">FormData</span>
+        <pre class="out" id="form-out">尚未提交</pre>
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div>9 个控件都在 <code>src/components/</code>，全部 <code>formAssociated</code> + <code>setFormValue</code></div>
+    <div>控件高度走 L2 的 <code>--sf-control-height-sm / md</code>，不再各写 28/32px</div>
+    <div>开合逻辑共用 <code>internal/popup.js</code>，popover / dropdown / select / multiselect 四处同一套</div>
+  </footer>
+
+</main>
+
+<script type="module">
+  import { initShell } from './demo/shell.js';
+  import './src/index.js';
+
+  initShell();
+
+  const form = document.getElementById('demo-form');
+  const out = document.getElementById('form-out');
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = {};
+    for (const [key, value] of new FormData(form)) {
+      // 多选会给出多个同名条目
+      data[key] = key in data ? [].concat(data[key], value) : value;
+    }
+    out.textContent = JSON.stringify(data, null, 2);
+  });
+
+  form.addEventListener('reset', () => {
+    out.textContent = '已重置';
+  });
+</script>
+
+</body>
+</html>

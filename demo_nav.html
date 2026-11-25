@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StarFlow · 导航组件</title>
+<link rel="stylesheet" href="src/tokens/tokens.css">
+<link rel="stylesheet" href="demo/shell.css">
+<script>
+  (function () {
+    try {
+      var pref = localStorage.getItem('sf-theme') || 'system';
+      var dark = pref === 'dark' ||
+        (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.setAttribute('data-sf-theme', dark ? 'dark' : 'light');
+    } catch (e) {
+      document.documentElement.setAttribute('data-sf-theme', 'light');
+    }
+  })();
+</script>
+<style>
+  .boxed {
+    box-sizing: border-box;
+    padding: var(--sf-space-4);
+    background: var(--sf-color-surface);
+    border: var(--sf-border-width) solid var(--sf-color-border);
+    border-radius: var(--sf-radius-lg);
+  }
+
+  /* 侧栏单独展示时长宽受限，不然它会一路撑到页面底部 */
+  .side-demo {
+    display: flex;
+    height: 320px;
+    overflow: hidden;
+    border: var(--sf-border-width) solid var(--sf-color-border);
+    border-radius: var(--sf-radius-lg);
+  }
+  .side-demo sf-sidebar { border-radius: 0; }
+  .side-demo__body {
+    flex: 1;
+    padding: var(--sf-space-4);
+    font-size: var(--sf-font-size-sm);
+    color: var(--sf-color-text-subtle);
+  }
+
+  /* 组合演示：外壳自己滚，顶栏 sticky 才看得出来 */
+  .shell {
+    height: 440px;
+    overflow: auto;
+    border: var(--sf-border-width) solid var(--sf-color-border);
+    border-radius: var(--sf-radius-lg);
+    background: var(--sf-color-bg);
+  }
+  .shell__body { display: flex; min-height: 400px; }
+  .shell__main {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    align-content: start;
+    gap: var(--sf-space-5);
+    padding: var(--sf-space-5);
+  }
+  .shell__card {
+    padding: var(--sf-space-4);
+    background: var(--sf-color-surface);
+    border: var(--sf-border-width) solid var(--sf-color-border);
+    border-radius: var(--sf-radius-md);
+    font-size: var(--sf-font-size-sm);
+    color: var(--sf-color-text-muted);
+  }
+
+  .brandmark {
+    display: flex;
+    align-items: center;
+    gap: var(--sf-space-2);
+    font-size: var(--sf-font-size-sm);
+    font-weight: var(--sf-font-weight-semibold);
+  }
+  .brandmark i {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    background: linear-gradient(150deg, var(--sf-color-accent), var(--sf-color-accent-active));
+  }
+
+  .topnav { display: flex; gap: var(--sf-space-1); }
+  .topnav a {
+    padding: 5px 9px;
+    border-radius: var(--sf-radius-sm);
+    font-size: var(--sf-font-size-sm);
+    color: var(--sf-color-text-muted);
+    text-decoration: none;
+  }
+  .topnav a[aria-current="page"] {
+    background: var(--sf-color-surface-hover);
+    color: var(--sf-color-text);
+    font-weight: var(--sf-font-weight-medium);
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <div class="mark"></div>
+    <div>
+      <b>StarFlow Components</b>
+      <span>nav · v0.1</span>
+    </div>
+  </div>
+  <div class="seg" role="group" aria-label="主题">
+    <button type="button" data-theme="system">跟随系统</button>
+    <button type="button" data-theme="light">亮色</button>
+    <button type="button" data-theme="dark">暗色</button>
+  </div>
+</header>
+
+<main class="page">
+
+  <section class="hero">
+    <h1>导航组件</h1>
+    <p>5 个组件：Topbar / Sidebar / Tabs / Steps / PageHeader。这一批基本都是"容器 + 状态"，真正的复杂度在 Tabs 的 roving focus 和 Steps 的状态推导上。最后一节把它们拼成一个界面看。</p>
+    <div class="hero__row">
+      <span class="pill">组件 <b>5</b></span>
+      <span class="pill">子组件 <b>2</b></span>
+      <span class="pill">生效主题 <b id="resolved">—</b></span>
+      <span class="pill">依赖 <b>0</b></span>
+    </div>
+  </section>
+
+  <!-- 01 Topbar -->
+  <section class="sec" id="topbar">
+    <div class="sec__head">
+      <span class="sec__idx">01 / TOPBAR</span>
+      <h2>Topbar</h2>
+      <p class="sec__desc">三段式：品牌 / 中间默认槽 / 右侧 <code>slot="end"</code>。默认 sticky + 半透明模糊，加 <code>no-sticky</code> 关掉。高度是 <code>--sf-topbar-height</code>。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row">
+        <span class="spec__label">sticky</span>
+        <div class="boxed" style="width: 100%; padding: 0; overflow: hidden;">
+          <sf-topbar no-sticky>
+            <div slot="brand" class="brandmark"><i></i>StarFlow</div>
+            <nav class="topnav">
+              <a href="#" aria-current="page">概览</a>
+              <a href="#">组件</a>
+              <a href="#">设置</a>
+            </nav>
+            <sf-button slot="end" size="sm" variant="ghost">登录</sf-button>
+          </sf-topbar>
+        </div>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">说明</span>
+        <span class="spec__code">sticky 效果在最后一节的组合里看（这里的容器不滚动，看不出来）</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 Sidebar -->
+  <section class="sec" id="sidebar">
+    <div class="sec__head">
+      <span class="sec__idx">02 / SIDEBAR</span>
+      <h2>Sidebar</h2>
+      <p class="sec__desc">导航项就是普通 <code>&lt;a&gt;</code>，选中态认 <code>aria-current="page"</code> —— 不需要额外的 class 和状态同步。分组小标题用 <code>data-section</code>。折叠态暂时没做，理由写在组件注释里。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row" style="align-items: stretch;">
+        <span class="spec__label">default</span>
+        <div class="side-demo" style="flex: 1;">
+          <sf-sidebar>
+            <div slot="brand" class="brandmark"><i></i>StarFlow</div>
+            <div data-section>工作区</div>
+            <a href="#" aria-current="page">
+              <svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true"><rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>
+              概览
+            </a>
+            <a href="#">
+              <svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true"><path d="M8 2l2 4 4 .6-3 3 .7 4.4L8 12l-3.7 2 .7-4.4-3-3L6 6z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+              组件
+            </a>
+            <div data-section>系统</div>
+            <a href="#">设置</a>
+            <a href="#">审计日志</a>
+            <div slot="footer"><sf-button size="sm" variant="ghost" style="width:100%">升级套餐</sf-button></div>
+          </sf-sidebar>
+          <div class="side-demo__body">右侧内容区</div>
+        </div>
+      </div>
+      <div class="spec__row" style="align-items: stretch;">
+        <span class="spec__label">plain</span>
+        <div class="side-demo" style="flex: 1;">
+          <sf-sidebar plain>
+            <a href="#" aria-current="page">概览</a>
+            <a href="#">组件</a>
+            <a href="#">设置</a>
+          </sf-sidebar>
+          <div class="side-demo__body">去掉底色和右边框，用在带底色的容器里</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 Tabs -->
+  <section class="sec" id="tabs">
+    <div class="sec__head">
+      <span class="sec__idx">03 / TABS</span>
+      <h2>Tabs</h2>
+      <p class="sec__desc">标签条由 sf-tabs 渲染，面板是光 DOM 里的 <code>&lt;sf-tab&gt;</code>。左右键切换并自动激活，Home / End 跳首尾；只有当前标签是 tab 停靠点（roving tabindex）。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row" style="align-items: stretch; flex-direction: column;">
+        <span class="spec__label">selected=0</span>
+        <sf-tabs id="tabs-a" selected="0">
+          <sf-tab label="概览">构建成功率 98.2%，最近 7 天失败 4 次，集中在 nightly 分支。</sf-tab>
+          <sf-tab label="活动" count="3">今天有 3 条新活动：2 次部署、1 次回滚。</sf-tab>
+          <sf-tab label="设置">通知、权限、集成都在这里配置。</sf-tab>
+        </sf-tabs>
+      </div>
+      <div class="spec__row">
+        <span class="spec__label">事件</span>
+        <span class="spec__code">最近切换：<b id="tabs-out">—</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 Steps -->
+  <section class="sec" id="steps">
+    <div class="sec__head">
+      <span class="sec__idx">04 / STEPS</span>
+      <h2>Steps</h2>
+      <p class="sec__desc">状态由父级的 <code>current</code> 推导后写到子级 <code>data-status</code>，子级只管画。"第几步"只有一个真相源，子级不用各自推断。连接线画在每一步内部。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row" style="width: 100%;">
+        <span class="spec__label">current=1</span>
+        <sf-steps current="1" style="max-width: 520px;">
+          <sf-step title="填写信息" description="账号与密码"></sf-step>
+          <sf-step title="验证邮箱" description="点击邮件里的链接"></sf-step>
+          <sf-step title="完成" description="开始使用"></sf-step>
+        </sf-steps>
+      </div>
+      <div class="spec__row" style="width: 100%;">
+        <span class="spec__label">current=2</span>
+        <sf-steps current="2" style="max-width: 520px;">
+          <sf-step title="填写信息"></sf-step>
+          <sf-step title="验证邮箱"></sf-step>
+          <sf-step title="完成"></sf-step>
+        </sf-steps>
+      </div>
+      <div class="spec__row" style="width: 100%;">
+        <span class="spec__label">全部完成</span>
+        <sf-steps current="3" style="max-width: 520px;">
+          <sf-step title="填写信息"></sf-step>
+          <sf-step title="验证邮箱"></sf-step>
+          <sf-step title="完成"></sf-step>
+        </sf-steps>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 PageHeader -->
+  <section class="sec" id="page-header">
+    <div class="sec__head">
+      <span class="sec__idx">05 / PAGE HEADER</span>
+      <h2>PageHeader</h2>
+      <p class="sec__desc">面包屑 / 标题 + 描述 / 右侧操作。没内容的部分自动收起，页面里不用写条件渲染。</p>
+    </div>
+    <div class="spec">
+      <div class="spec__row" style="display: block;">
+        <sf-page-header title="概览" description="最近 7 天的构建与部署情况，数据每 30 秒刷新一次。">
+          <div slot="breadcrumbs">项目 / StarFlow / 概览</div>
+          <sf-button slot="actions" size="sm">新建构建</sf-button>
+          <sf-button slot="actions" size="sm" variant="ghost">导出</sf-button>
+        </sf-page-header>
+      </div>
+      <sf-divider></sf-divider>
+      <div class="spec__row" style="display: block;">
+        <sf-page-header title="只有标题"></sf-page-header>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 组合 -->
+  <section class="sec" id="compose">
+    <div class="sec__head">
+      <span class="sec__idx">06 / COMPOSE</span>
+      <h2>拼起来看</h2>
+      <p class="sec__desc">Topbar（sticky）+ Sidebar + PageHeader + Tabs。这块容器自己滚动，往下滚能看到顶栏贴住。</p>
+    </div>
+    <div class="shell">
+      <sf-topbar>
+        <div slot="brand" class="brandmark"><i></i>StarFlow</div>
+        <nav class="topnav">
+          <a href="#" aria-current="page">概览</a>
+          <a href="#">组件</a>
+          <a href="#">设置</a>
+        </nav>
+        <sf-avatar slot="end" name="张三" size="sm"></sf-avatar>
+      </sf-topbar>
+
+      <div class="shell__body">
+        <sf-sidebar>
+          <div data-section>工作区</div>
+          <a href="#" aria-current="page">概览</a>
+          <a href="#">构建</a>
+          <a href="#">成员</a>
+          <div data-section>系统</div>
+          <a href="#">设置</a>
+        </sf-sidebar>
+
+        <div class="shell__main">
+          <sf-page-header title="概览" description="最近 7 天的构建情况。">
+            <sf-button slot="actions" size="sm">新建构建</sf-button>
+          </sf-page-header>
+
+          <sf-tabs selected="0">
+            <sf-tab label="概览">
+              <div class="shell__card">构建成功率 98.2%，平均耗时 42 秒。</div>
+            </sf-tab>
+            <sf-tab label="活动" count="3">
+              <div class="shell__card">今天有 3 条新活动。</div>
+            </sf-tab>
+            <sf-tab label="设置">
+              <div class="shell__card">通知、权限、集成。</div>
+            </sf-tab>
+          </sf-tabs>
+
+          <div class="shell__card" style="height: 120px;">（占位，用来把容器撑出滚动条，好观察顶栏是否贴住）</div>
+          <div class="shell__card" style="height: 120px;">（再占一块）</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div>5 个组件在 <code>src/components/</code>，sf-tab / sf-step 是各自的子组件</div>
+    <div>Sidebar 的选中态认 <code>aria-current="page"</code>，不需要额外 class</div>
+    <div>Tabs 用 roving tabindex：只有当前标签能 Tab 到，左右键在组内切换</div>
+  </footer>
+
+</main>
+
+<script type="module">
+  import { initShell } from './demo/shell.js';
+  import './src/index.js';
+
+  initShell();
+
+  const out = document.getElementById('tabs-out');
+  document.getElementById('tabs-a').addEventListener('sf-change', (event) => {
+    out.textContent = `index ${event.detail.index}`;
+  });
+</script>
+
+</body>
+</html>
